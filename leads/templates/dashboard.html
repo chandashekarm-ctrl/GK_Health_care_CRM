@@ -161,7 +161,7 @@
                     <i class="fas fa-users"></i>
                 </div>
                 <h5 class="function-card-title">Total Customers</h5>
-                <span class="badge bg-primary mt-1"> Total {{ total_leads }}</span>
+                <span class="badge bg-primary mt-1"> Total {{ total_customers }}</span>
             </a>
         </div>
 
@@ -178,11 +178,13 @@
 
         <!-- Add Customer -->
         <div class="col-6 col-md-4 col-lg-3">
-            <a href="{% url 'add_customer' %}" class="function-card orange text-decoration-none">
+            <a href="{% url 'staff_expense_list' %}" class="function-card orange text-decoration-none">
                 <div class="function-card-icon orange">
-                    <i class="fas fa-user-plus"></i>
+                   <i class="fas fa-money-bill-wave"></i>
+
                 </div>
-                <h5 class="function-card-title">Add Customer</h5>
+                <h5 class="function-card-title">Expenses Tracker</h5>
+                <span class="badge bg-primary mt-1">Total Expenses : {{ total_expenses }}</span>
             </a>
         </div>
 

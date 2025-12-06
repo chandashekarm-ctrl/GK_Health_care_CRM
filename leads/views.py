@@ -37,6 +37,7 @@ import json
 from django.shortcuts import render, redirect
 from .models import Staff
 from hr.models import Expense, EXPENSE_TYPES
+from django.contrib.auth.decorators import user_passes_test
 
 
 
@@ -138,28 +139,56 @@ def save_payment_followup(request):
             return redirect('payment_followup_form')
     return redirect('payment_followup_form')
 
+from .models import user_password
+
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
+from .models import user_password
+
 def login_view(request):
+    # Fetch all username & password pairs from DB
+    users = user_password.objects.all()
+
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
+
+        # Try Django authentication
         user = authenticate(request, username=username, password=password)
-        if user is not None:
+
+        if user:
             login(request, user)
             return redirect('dashboard')
+
+        # Custom DB-based authentication
+        elif user_password.objects.filter(user=username, pwd=password).exists():
+            # Store username in session
+            request.session['username'] = username
+            return redirect('dashboard')
+
         else:
-            return render(request, 'login.html', {'error': 'Invalid credentials'})
-    return render(request, 'login.html')
+            return render(request, 'login.html', {
+                'error': 'Invalid username or password!',
+                'users': users
+            })
+
+    return render(request, 'login.html', {'users': users})
+
+
 
 def logout_view(request):
     logout(request)
     return redirect('login')
 
 def dashboard(request):
+    expenses = Expense.objects.select_related("staff").order_by("-created_at")
+    total_expenses = expenses.aggregate(total=Sum("amount"))["total"] or 0
     total_customers = Customer.objects.count()
     total_vendors = Vendor.objects.count()
     total_leads = HospitalLead.objects.count()
     total_tasks = TaskAssign.objects.count()
     total_products = Product.objects.count()
+    total_customers = HospitalLead.objects.filter(lead_source="Customer").count()
 
     context = {
         "total_customers": total_customers,
@@ -167,13 +196,13 @@ def dashboard(request):
         "total_leads": total_leads,
         "total_tasks": total_tasks,
         "total_products": total_products,
+        'total_expenses':total_expenses,
+        
     }
     return render(request, "dashboard.html", context)
 
 def payment(request):
     return render(request, 'payment.html')
-
-
 
 def new_lead(request):
     if request.method == 'POST':
@@ -188,7 +217,8 @@ def new_lead(request):
                 lead.hospital_type = request.POST.get('hospital_type_other', 'Other')
             else:
                 lead.hospital_type = hospital_type
-            
+            lead.lead_source = request.POST.get('lead_source', 'Customer')
+
             # Contact information
             lead.first_name = request.POST.get('first_name')
             lead.last_name = request.POST.get('last_name')
@@ -319,24 +349,33 @@ def hospital_leads_list(request):
     hospital_filter = request.GET.get('hospital', '').strip()
     city_filter = request.GET.get('city', '').strip()
     state_filter = request.GET.get('state', '').strip()
-
+    lead_source_filter = request.GET.get('lead_source', '').strip()
+    
     # BASE QUERY
     leads = HospitalLead.objects.all().prefetch_related(
         'lead_parts__part',
         'lead_products__product'
     ).order_by('-created_at')
 
-    # APPLY FILTERS
+    # APPLY FILTERS -----------------------------------------
+
+    # Lead Source Filter
+    if lead_source_filter:
+        leads = leads.filter(lead_source=lead_source_filter)
+
+    # Hospital Filter
     if hospital_filter:
         leads = leads.filter(id=hospital_filter)
 
+    # City Filter
     if city_filter:
         leads = leads.filter(city__iexact=city_filter)
 
+    # State Filter
     if state_filter:
         leads = leads.filter(state__iexact=state_filter)
 
-    # APPLY SEARCH
+    # APPLY SEARCH ------------------------------------------
     if search_query:
         leads = leads.filter(
             Q(hospital_name__icontains=search_query) |
@@ -347,11 +386,13 @@ def hospital_leads_list(request):
             Q(city__icontains=search_query) |
             Q(state__icontains=search_query)
         )
-
-    # DROPDOWN LISTS
+    total_leads = HospitalLead.objects.count()
+    total_customers = HospitalLead.objects.filter(lead_source="Customer").count()
+    total_normal_leads = HospitalLead.objects.filter(lead_source="Lead").count()
+    # DROPDOWN LIST DATA -------------------------------------
     hospitals = HospitalLead.objects.all()
-    cities = HospitalLead.objects.values_list('city', flat=True).distinct()
-    states = HospitalLead.objects.values_list('state', flat=True).distinct()
+    cities = HospitalLead.objects.exclude(city="").values_list('city', flat=True).distinct()
+    states = HospitalLead.objects.exclude(state="").values_list('state', flat=True).distinct()
 
     return render(request, 'hospital_leads_list.html', {
         'leads': leads,
@@ -362,7 +403,12 @@ def hospital_leads_list(request):
         'selected_hospital': hospital_filter,
         'selected_city': city_filter,
         'selected_state': state_filter,
+        'selected_lead_source': lead_source_filter,
+        'total_leads': total_leads,
+    'total_customers': total_customers,
+    'total_normal_leads': total_normal_leads,
     })
+
 
 def hospital_lead_detail(request, lead_id):
     """View to display detailed information about a specific lead"""
@@ -892,7 +938,7 @@ def delete_parts(request, parts_id):
 def add_customer(request):
     """Display the add customer form"""
     return render(request, 'add_customer.html')
-
+ 
 def save_customer(request):
     """Save customer data to database"""
     if request.method == 'POST':
@@ -922,51 +968,146 @@ def save_customer(request):
 
     return redirect('add_customer')
 
+
+@user_passes_test(lambda u: u.is_superuser)
 def customer_list(request):
-    """Display list of all customers with search and filter functionality"""
-    customers = Customer.objects.all()
+    """Display only CUSTOMER leads with filters."""
 
-    query = request.GET.get('q', '')            # query = hospital_name 1 - srm - chennai
-    query_url =  urllib.parse.quote(query)      # query_url = 'hospital_name%201%20-%20srm%20-%20chennai'
-    filter_type = query_url.split('%20')[0]     # filter_type = [hospital_name, 1, -, srm, -, chennai]
-    
+    # Base queryset → ONLY CUSTOMERS
+    base_queryset = HospitalLead.objects.filter(lead_source="Customer").order_by('-created_at')
+
+    query = request.GET.get('q', '').strip()
+    query_url = urllib.parse.quote(query)
+    filter_type = query_url.split('%20')[0]
+
+    # Default
+    hospital_leads = base_queryset
+    hospitals = base_queryset
+
+    # Filters
     if filter_type == 'hospital_name':
-        hospitals = HospitalLead.objects.filter(id=query_url.split('%20')[1])
-        hospital_leads = HospitalLead.objects.filter(id=query_url.split('%20')[1])
-    elif filter_type == 'city':
-        hospitals = HospitalLead.objects.filter(city=query_url.split('%20')[1])
-        hospital_leads = HospitalLead.objects.filter(city=query_url.split('%20')[1])
-    elif filter_type == 'state':
-        hospitals = HospitalLead.objects.filter(state=query_url.split('%20')[1])
-        hospital_leads = HospitalLead.objects.filter(state=query_url.split('%20')[1])
-    else:
-        hospital_leads = HospitalLead.objects.all().order_by('-created_at')
-        hospitals = HospitalLead.objects.all()
+        hospital_id = query_url.split('%20')[1]
+        hospital_leads = base_queryset.filter(id=hospital_id)
+        hospitals = base_queryset.filter(id=hospital_id)
 
-    
-    cities = set(HospitalLead.objects.values_list('city', flat=True))
-    # This returns all unique cities as a set (the cities will not be repeated more than once)
-    cities = [city.strip().title() for city in cities if city != '']
-    '''Return a list of non-empty cities (if city != '') with surrounding whitespace removed (.strip()).
-    title() - Capitalizes the first letter of every word.'''
-    cities = sorted(set(cities))   # Sort the cities in ascending order
-    
-    states_list = HospitalLead.objects.values_list('state', flat=True) 
-    states = sorted(set([state.strip().title() for state in states_list if state != '']))
-    
-    # Pagination
+    elif filter_type == 'city':
+        city_name = query_url.split('%20')[1]
+        hospital_leads = base_queryset.filter(city__iexact=city_name)
+        hospitals = base_queryset.filter(city__iexact=city_name)
+
+    elif filter_type == 'state':
+        state_name = query_url.split('%20')[1]
+        hospital_leads = base_queryset.filter(state__iexact=state_name)
+        hospitals = base_queryset.filter(state__iexact=state_name)
+
+    # Dropdown lists (ONLY customer data)
+    cities = sorted(set(
+        city.strip().title()
+        for city in base_queryset.values_list('city', flat=True)
+        if city
+    ))
+
+    states = sorted(set(
+        state.strip().title()
+        for state in base_queryset.values_list('state', flat=True)
+        if state
+    ))
+
+    # Pagination for customers table
+    customers = Customer.objects.all()
     paginator = Paginator(customers, 5)
     page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number) 
+    page_obj = paginator.get_page(page_number)
 
-    # RETURN ALL DATA TO TEMPLATE
     return render(request, 'customer_list_1.html', {
         'customers': page_obj,
-        'states': states,
+
+        'hospital_leads': hospital_leads,  # ← ONLY CUSTOMER LEADS NOW
+        'hospitals': hospitals,
+
         'cities': cities,
-        'total_customers': Customer.objects.count(),
-        'hospital_leads': hospital_leads,     # ✅ NOW AVAILABLE IN TEMPLATE
-        'hospitals':hospitals,
+        'states': states,
+
+        'total_customers': base_queryset.count(),
+    })
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def customer_list1(request):
+    """Display list of all customers (ONLY Customer Leads)."""
+
+    # ========= COUNTS =========
+    total_leads = HospitalLead.objects.count()
+    total_customers = HospitalLead.objects.filter(lead_source="Customer").count()
+    total_normal_leads = HospitalLead.objects.filter(lead_source="Lead").count()
+
+    # ========= BASE QUERY (ONLY CUSTOMERS) =========
+    base_queryset = HospitalLead.objects.filter(lead_source="Customer").order_by('-created_at')
+
+    # ========= FILTER LOGIC =========
+    query = request.GET.get('q', '').strip()        
+    query_url = urllib.parse.quote(query)           
+    filter_type = query_url.split('%20')[0]         
+
+    # Apply filters
+    if filter_type == 'hospital_name':
+        hospital_id = query_url.split('%20')[1]
+        hospital_leads = base_queryset.filter(id=hospital_id)
+        hospitals = base_queryset.filter(id=hospital_id)
+
+    elif filter_type == 'city':
+        city_name = query_url.split('%20')[1]
+        hospital_leads = base_queryset.filter(city__iexact=city_name)
+        hospitals = base_queryset.filter(city__iexact=city_name)
+
+    elif filter_type == 'state':
+        state_name = query_url.split('%20')[1]
+        hospital_leads = base_queryset.filter(state__iexact=state_name)
+        hospitals = base_queryset.filter(state__iexact=state_name)
+
+    else:
+        hospital_leads = base_queryset
+        hospitals = base_queryset
+
+    # ========= CITY + STATE DROPDOWN LISTS =========
+    cities = sorted(
+        set(
+            city.strip().title()
+            for city in HospitalLead.objects.filter(lead_source="Customer").values_list('city', flat=True)
+            if city
+        )
+    )
+
+    states = sorted(
+        set(
+            state.strip().title()
+            for state in HospitalLead.objects.filter(lead_source="Customer").values_list('state', flat=True)
+            if state
+        )
+    )
+
+    # ========= PAGINATION FOR CUSTOMERS TABLE =========
+    customers = Customer.objects.all()
+    paginator = Paginator(customers, 5)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # ========= RETURN DATA TO TEMPLATE =========
+    return render(request, 'customer_list_1.html', {
+        'customers': page_obj,
+
+        # Filters
+        'cities': cities,
+        'states': states,
+
+        # Lead data (ONLY CUSTOMERS)
+        'hospital_leads': hospital_leads,
+        'hospitals': hospitals,
+
+        # Counts
+        'total_leads': total_leads,
+        'total_customers': total_customers,
+        'total_normal_leads': total_normal_leads,
     })
 
 def customer_detail(request, customer_id):

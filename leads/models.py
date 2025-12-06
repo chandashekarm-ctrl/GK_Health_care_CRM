@@ -20,6 +20,12 @@ class Lead(models.Model):
     
 class HospitalLead(models.Model):
     # Hospital Information
+    lead_source = models.CharField(
+    max_length=20,
+    choices=[
+        ('Customer', 'Customer'),
+        ('Lead', 'Lead')
+    ],)
     hospital_name = models.CharField(max_length=200)
     hospital_type = models.CharField(max_length=50, choices=[
         ('Direct Hospital', 'Direct Hospital'),
@@ -563,3 +569,12 @@ class TaskAssign(models.Model):
     description = models.TextField()
     remarks = models.TextField()
     follow_up_date = models.DateField()
+
+class user_password(models.Model):
+    user = models.CharField(max_length=100)
+    pwd = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"{self.user} - {self.pwd}"
+
+

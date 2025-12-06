@@ -125,32 +125,41 @@
       <form method="post">
         {% csrf_token %}
 
+        <!-- Username Dropdown -->
         <div class="mb-4">
-          <label class="form-label">Username</label>
-          <div class="input-group">
-            <span class="input-group-text"><i class="fas fa-user"></i></span>
-            <input type="text" name="username" class="form-control" placeholder="Enter username" required />
-          </div>
+            <label class="form-label">Username</label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                <select name="username" class="form-control" required>
+                    <option value="">Select Username</option>
+                    {% for u in users %}
+                        <option value="{{ u.user }}">{{ u.user }}</option>
+                    {% endfor %}
+                </select>
+            </div>
         </div>
 
+        <!-- Password Dropdown -->
         <div class="mb-4">
-          <label class="form-label">Password</label>
-          <div class="input-group">
-            <span class="input-group-text"><i class="fas fa-lock"></i></span>
-            <input type="password" name="password" class="form-control" placeholder="Enter password" required />
-          </div>
+            <label class="form-label">Password</label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                <select name="password" class="form-control" required>
+                    <option value="">Select Password</option>
+                    {% for u in users %}
+                        <option value="{{ u.pwd }}">{{ u.pwd }}</option>
+                    {% endfor %}
+                </select>
+            </div>
         </div>
 
+        <!-- Login Button -->
         <div class="d-grid mb-3">
-          <button type="submit" class="btn btn-login">
-            <i class="fas fa-sign-in-alt me-2"></i>Login
-          </button>
+            <button type="submit" class="btn btn-login">
+                <i class="fas fa-sign-in-alt me-2"></i>Login
+            </button>
         </div>
-
-        <div class="text-center">
-          <a href="#" class="text-decoration-none text-muted">Forgot password?</a>
-        </div>
-      </form>
+    </form>
     </div>
   </div>
 

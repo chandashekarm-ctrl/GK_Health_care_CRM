@@ -10,7 +10,9 @@ from .models import Bank
 from .models import TaxType
 from .models import Staff
 from .models import TaskAssign
+from .models import user_password
 
+admin.site.register(user_password)
 admin.site.register(HospitalLead)
 admin.site.register(Category)
 admin.site.register(Product)

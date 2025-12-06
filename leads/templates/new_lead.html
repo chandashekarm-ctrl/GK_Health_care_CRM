@@ -20,12 +20,16 @@
                         <input type="text" class="form-control" name="hospital_name" required>
                     </div>
                     
+
+
+
                     <div class="mb-3">
                         <label class="form-label">Type of Hospital Unit*</label>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="hospital_type" id="direct_hospital" value="Direct Hospital" required>
                             <label class="form-check-label" for="direct_hospital">Direct Hospital</label>
                         </div>
+                        
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="hospital_type" id="distributed" value="Distributed">
                             <label class="form-check-label" for="distributed">Distributed</label>
@@ -39,7 +43,20 @@
                         </div>
                     </div>
                 </div>
+                <!-- Lead Source -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2">Lead Source</h5>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="lead_source" id="lead_src" value="Lead" checked>
+                                <label class="form-check-label" for="lead_src">Lead</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="lead_source" id="customer_src" value="Customer" >
+                                <label class="form-check-label" for="customer_src">Customer</label>
+                            </div>
 
+                            
+                        </div>
                 <!-- 2. Contact Information -->
                 <div class="mb-4">
                     <h5 class="border-bottom pb-2">2. Contact Person Information</h5>
