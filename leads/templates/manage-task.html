@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Tasks Assigned{% endblock %}
+
+{% block content %}
+
+<style>
+    .view-toggle-btn.active {
+        background-color: #0d6efd !important;
+        color: white !important;
+    }
+
+    .task-card-box {
+        border: 1px solid #e5e5e5;
+        border-radius: 12px;
+        padding: 16px;
+        background: #fff;
+        transition: 0.2s ease;
+    }
+    .task-card-box:hover {
+        box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    }
+
+    .avatar-sm {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        font-size: 20px;
+    }
+
+    @media(max-width: 576px) {
+        .task-card-box { padding: 14px; }
+        .table-responsive { font-size: 14px; }
+        .view-toggle-btn { font-size: 14px; padding: 6px 10px; }
+    }
+    @media(max-width: 576px) {
+    .page-header .badge {
+        margin: 6px;
+        font-size: 23px;
+        padding: 4px 8px;
+    }
+}
+
+</style>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center flex-wrap">
+        <div>
+            <h1 class="page-title">
+                <i class="fas fa-tasks me-2"></i>Tasks Assigned
+            </h1>
+            <span class="badge bg-primary">Total: {{ tasks|length }}</span>
+        </div>
+    </div>
+</div>
+
+<!-- MOBILE FILTER DROPDOWN -->
+<div class="d-md-none mb-3">
+    <button class="btn btn-primary w-100 d-flex justify-content-between align-items-center"
+            data-bs-toggle="collapse" data-bs-target="#filtersDropdown">
+        <span>Filters</span>
+        <i class="fas fa-filter"></i>
+    </button>
+</div>
+
+<!-- FILTERS CARD -->
+<div id="filtersDropdown" class="collapse d-md-block">
+<div class="card mb-3">
+    <div class="card-body bg-light border-bottom">
+        <div class="row g-3 align-items-center">
+
+            <!-- Hospital Filter -->
+            <form class="col-md-3 d-flex" method="get" action="">
+                {% csrf_token %}
+                <input type="hidden" name="q" id="hiddenHospitalRow">
+                <select class="form-control" name="hospital"
+                    onchange="document.getElementById('hiddenHospitalRow').value = 'hospital '+this.options[this.selectedIndex].text;">
+                    <option value="">Hospital</option>
+                    {% for hospital in hospitals %}
+                    <option value="{{ hospital.id }}">{{ hospital.id }} - {{ hospital.hospital_name }}</option>
+                    {% endfor %}
+                </select>
+                <button class="btn btn-primary ms-2"><i class="fas fa-search"></i></button>
+            </form>
+
+            <!-- City Filter -->
+            <form class="col-md-3 d-flex" method="get" action="">
+                <input type="hidden" name="q" id="hiddenCityRow">
+                <select class="form-control" name="city"
+                    onchange="document.getElementById('hiddenCityRow').value = 'city '+this.value;">
+                    <option value="">City</option>
+                    {% for city in cities %}
+                        {% if city %}<option value="{{ city }}">{{ city }}</option>{% endif %}
+                    {% endfor %}
+                </select>
+                <button class="btn btn-primary ms-2"><i class="fas fa-search"></i></button>
+            </form>
+
+            <!-- State Filter -->
+            <form class="col-md-3 d-flex" method="get" action="">
+                <input type="hidden" name="q" id="hiddenStateRow">
+                <select class="form-control" name="state"
+                    onchange="document.getElementById('hiddenStateRow').value = 'state '+this.value;">
+                    <option value="">State</option>
+                    {% for state in states %}
+                        {% if state %}<option value="{{ state }}">{{ state }}</option>{% endif %}
+                    {% endfor %}
+                </select>
+                <button class="btn btn-primary ms-2"><i class="fas fa-search"></i></button>
+            </form>
+
+            <!-- Task Type Filter -->
+            <form class="col-md-3 d-flex" method="get" action="">
+                <input type="hidden" name="q" id="hiddenTaskRow">
+                <select name="task_type" class="form-control" required>
+                      <option value="">Select Task</option>
+                      <option value="quotation_submitted">Quotation Submitted</option>
+                      <option value="payment_follow_up">Payment follow up</option>
+                      <option value="scrap_machine">Scrap Machine</option>
+                      <option value="ncp_solution">NCP_Solution</option>
+                      <option value="ncp_machine">NCP_Machine</option>
+                      <option value="fmc_amc">FMC_AMC</option>
+                      <option value="phone_call">Phone Call</option>
+                      <option value="pts_visit">PTS_Visit</option>
+                      <option value="citro_clear">Citro Clear</option>
+                      <option value="pulmonary">Pulmonary</option>
+                    </select>
+                <button class="btn btn-primary ms-2"><i class="fas fa-search"></i></button>
+            </form>
+
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- VIEW TOGGLE BUTTONS -->
+<div class="container mt-2">
+    <div class="d-flex justify-content-end mb-3">
+        <button id="tableViewBtn" class="btn btn-outline-primary view-toggle-btn me-2">
+
+            <i class="fas fa-table"></i> Table View
+        </button>
+        <button id="cardViewBtn" class="btn btn-outline-primary view-toggle-btn active">
+
+            <i class="fas fa-list"></i> Card View
+        </button>
+    </div>
+
+<!-- TABLE VIEW -->
+<div id="tableView">
+    <div class="card">
+        <div class="card-body p-0">
+            {% if tasks %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Hospital</th>
+                            <th>Staff</th>
+                            <th>Task</th>
+                            <th>Description</th>
+                            <th>Assign Date</th>
+                            <th>Follow-up</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for task in tasks %}
+                        <tr>
+                            <td><strong>{{ task.hospital_id }}</strong><br>
+                                <small class="text-muted">{{ task.hospital_id.city }}</small>
+                            </td>
+
+                            <td>{{ task.staff_id }}</td>
+
+                            <td>
+                                <span class="badge bg-info text-dark">{{ task.task_type }}</span>
+                            </td>
+
+                            <td>{{ task.description }}</td>
+
+                            <td>{{ task.assign_date }}</td>
+                            <td>{{ task.follow_up_date }}</td>
+
+                            <td class="text-center">
+                                <a href="{% url 'view_task' task.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'hospital_lead_edit' task.id %}" class="btn btn-sm btn-outline-warning">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+
+                </table>
+            </div>
+
+            {% else %}
+            <div class="p-4 text-center text-muted">No tasks found.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- CARD VIEW -->
+<div id="cardView" style="display:none;">
+    {% for task in tasks %}
+    <div class="task-card-box mb-3">
+
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="d-flex align-items-center gap-3">
+                <div class="avatar-sm bg-primary text-white d-flex align-items-center justify-content-center fw-bold rounded-circle">
+                    {{ task.hospital_id|stringformat:"s"|slice:":1"|upper }}
+                </div>
+
+                <div>
+                    <h6 class="mb-0 fw-bold">{{ task.hospital_id }}</h6>
+                    <small class="text-muted">{{ task.hospital_id.city }}</small>
+                </div>
+            </div>
+
+            <span class="badge bg-info text-dark">{{ task.task_type }}</span>
+        </div>
+
+        <hr class="my-2">
+
+        <p><i class="fas fa-user text-primary"></i> {{ task.staff_id }}</p>
+        <p><i class="fas fa-align-left text-primary"></i> {{ task.description }}</p>
+        <p><i class="fas fa-calendar-day text-primary"></i> {{ task.assign_date }} → {{ task.follow_up_date }}</p>
+
+        <div class="d-flex justify-content-end gap-2 mt-2">
+            <a href="{% url 'view_task' task.id %}" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-eye"></i> View
+            </a>
+            <a href="{% url 'hospital_lead_edit' task.id %}" class="btn btn-outline-warning btn-sm">
+                <i class="fas fa-edit"></i> Edit
+            </a>
+        </div>
+
+    </div>
+    {% endfor %}
+</div>
+
+</div>
+
+<script>
+    const tableBtn = document.getElementById("tableViewBtn");
+    const cardBtn = document.getElementById("cardViewBtn");
+    const tableView = document.getElementById("tableView");
+    const cardView = document.getElementById("cardView");
+
+    // Default: show card view first
+    cardView.style.display = "block";
+    tableView.style.display = "none";
+
+    tableBtn.onclick = () => {
+        tableView.style.display = "block";
+        cardView.style.display = "none";
+        tableBtn.classList.add("active");
+        cardBtn.classList.remove("active");
+    };
+
+    cardBtn.onclick = () => {
+        tableView.style.display = "none";
+        cardView.style.display = "block";
+        cardBtn.classList.add("active");
+        tableBtn.classList.remove("active");
+    };
+</script>
+
+{% endblock %}

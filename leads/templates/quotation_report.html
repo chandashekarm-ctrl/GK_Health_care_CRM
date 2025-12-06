@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        .report-header {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 30px 0;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            border-left: 4px solid #007bff;
+            transition: transform 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .chart-container {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        .filter-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        .btn-filter {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            border: none;
+            border-radius: 25px;
+            color: white;
+            padding: 10px 25px;
+        }
+        .btn-export {
+            background: linear-gradient(45deg, #17a2b8, #138496);
+            border: none;
+            border-radius: 25px;
+            color: white;
+            padding: 10px 25px;
+        }
+        .icon-stat {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+        .icon-quotations {
+            background: linear-gradient(45deg, #007bff, #0056b3);
+            color: white;
+        }
+        .icon-value {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+        }
+        .icon-recent {
+            background: linear-gradient(45deg, #ffc107, #e0a800);
+            color: white;
+        }
+        .icon-avg {
+            background: linear-gradient(45deg, #dc3545, #c82333);
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <!-- Header -->
+    <div class="report-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1><i class="fas fa-chart-bar me-3"></i>{{ title }}</h1>
+                    <p class="mb-0">Comprehensive analysis of quotation data and trends</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-export me-2" onclick="exportReport()">
+                        <i class="fas fa-download me-2"></i>Export Report
+                    </button>
+                    <a href="{% url 'create_quotation' %}" class="btn btn-light">
+                        <i class="fas fa-plus me-2"></i>New Quotation
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <!-- Filters -->
+        <div class="filter-section">
+            <h5><i class="fas fa-filter me-2"></i>Filters</h5>
+            <form method="get" class="row align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label">Date From</label>
+                    <input type="date" name="date_from" class="form-control" value="{{ date_from }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Date To</label>
+                    <input type="date" name="date_to" class="form-control" value="{{ date_to }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Category</label>
+                    <select name="category" class="form-select">
+                        <option value="">All Categories</option>
+                        {% for category in categories %}
+                            <option value="{{ category.id }}" {% if selected_category == category.id|stringformat:'s' %}selected{% endif %}>
+                                {{ category.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-filter w-100">
+                        <i class="fas fa-search me-2"></i>Apply Filters
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="stat-card text-center">
+                    <div class="icon-stat icon-quotations mx-auto">
+                        <i class="fas fa-file-invoice"></i>
+                    </div>
+                    <div class="stat-number">{{ total_quotations }}</div>
+                    <div class="stat-label">Total Quotations</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="stat-card text-center">
+                    <div class="icon-stat icon-value mx-auto">
+                        <i class="fas fa-rupee-sign"></i>
+                    </div>
+                    <div class="stat-number">₹{{ total_value|floatformat:0 }}</div>
+                    <div class="stat-label">Total Value</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="stat-card text-center">
+                    <div class="icon-stat icon-recent mx-auto">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-number">{{ recent_quotations }}</div>
+                    <div class="stat-label">Last 30 Days</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="stat-card text-center">
+                    <div class="icon-stat icon-avg mx-auto">
+                        <i class="fas fa-calculator"></i>
+                    </div>
+                    <div class="stat-number">₹{% if total_quotations > 0 %}{{ total_value|floatformat:0|mul:1|div:total_quotations|floatformat:0 }}{% else %}0{% endif %}</div>
+                    <div class="stat-label">Average Value</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="row">
+            <div class="col-lg-8 mb-4">
+                <div class="chart-container">
+                    <h5><i class="fas fa-chart-line me-2"></i>Monthly Trends</h5>
+                    <canvas id="monthlyChart" height="100"></canvas>
+                </div>
+            </div>
+            <div class="col-lg-4 mb-4">
+                <div class="chart-container">
+                    <h5><i class="fas fa-chart-pie me-2"></i>Category Distribution</h5>
+                    <canvas id="categoryChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Statistics Table -->
+        <div class="table-container mb-4">
+            <div class="p-3 border-bottom">
+                <h5><i class="fas fa-table me-2"></i>Category-wise Breakdown</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Category</th>
+                            <th>Quotations</th>
+                            <th>Total Value</th>
+                            <th>Average Value</th>
+                            <th>Percentage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stat in category_stats %}
+                        <tr>
+                            <td>
+                                <strong>{{ stat.category__name|default:"Uncategorized" }}</strong>
+                            </td>
+                            <td>
+                                <span class="badge bg-primary">{{ stat.count }}</span>
+                            </td>
+                            <td>₹{{ stat.total_value|floatformat:2 }}</td>
+                            <td>₹{{ stat.total_value|div:stat.count|floatformat:2 }}</td>
+                            <td>
+                                <div class="progress" style="height: 20px;">
+                                    <div class="progress-bar" style="width: {% widthratio stat.total_value total_value 100 %}%">
+                                        {% widthratio stat.total_value total_value 100 %}%
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">
+                                <i class="fas fa-inbox fa-2x mb-3"></i><br>
+                                No data available for the selected filters
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Monthly Statistics Table -->
+        <div class="table-container">
+            <div class="p-3 border-bottom">
+                <h5><i class="fas fa-calendar-alt me-2"></i>Monthly Performance</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Month</th>
+                            <th>Quotations</th>
+                            <th>Total Value</th>
+                            <th>Average Value</th>
+                            <th>Growth</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stat in monthly_stats %}
+                        <tr>
+                            <td><strong>{{ stat.month }}</strong></td>
+                            <td>
+                                <span class="badge bg-info">{{ stat.count }}</span>
+                            </td>
+                            <td>₹{{ stat.total_value|floatformat:2 }}</td>
+                            <td>₹{% if stat.count > 0 %}{{ stat.total_value|div:stat.count|floatformat:2 }}{% else %}0.00{% endif %}</td>
+                            <td>
+                                {% if forloop.counter > 1 %}
+                                    {% with prev_stat=monthly_stats|slice:forloop.counter0|slice:":1"|first %}
+                                        {% if prev_stat.total_value > 0 %}
+                                            {% with growth=stat.total_value|sub:prev_stat.total_value|div:prev_stat.total_value|mul:100 %}
+                                                <span class="badge {% if growth >= 0 %}bg-success{% else %}bg-danger{% endif %}">
+                                                    {% if growth >= 0 %}+{% endif %}{{ growth|floatformat:1 }}%
+                                                </span>
+                                            {% endwith %}
+                                        {% else %}
+                                            <span class="badge bg-secondary">N/A</span>
+                                        {% endif %}
+                                    {% endwith %}
+                                {% else %}
+                                    <span class="badge bg-secondary">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">
+                                <i class="fas fa-calendar-times fa-2x mb-3"></i><br>
+                                No monthly data available
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Monthly Trends Chart
+        const monthlyData = {
+            labels: [`{% for stat in monthly_stats %}'{{ stat.month }}'{% if not forloop.last %},{% endif %}{% endfor %}`],
+            datasets: [{
+                label: 'Quotations',
+                data: [`{% for stat in monthly_stats %}{{ stat.count }}{% if not forloop.last %},{% endif %}{% endfor %}`],
+                borderColor: '#007bff',
+                backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                tension: 0.4,
+                yAxisID: 'y'
+            }, {
+                label: 'Value (₹)',
+                data: [`{% for stat in monthly_stats %}{{ stat.total_value }}{% if not forloop.last %},{% endif %}{% endfor %}`],
+                borderColor: '#28a745',
+                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                tension: 0.4,
+                yAxisID: 'y1'
+            }]
+        };
+
+        const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+        new Chart(monthlyCtx, {
+            type: 'line',
+            data: monthlyData,
+            options: {
+                responsive: true,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Number of Quotations'
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'Value (₹)'
+                        },
+                        grid: {
+                            drawOnChartArea: false,
+                        },
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                }
+            }
+        });
+
+        // Category Distribution Chart
+        const categoryData = {
+            labels: [`{% for stat in category_stats %}'{{ stat.category__name|default:"Uncategorized" }}'{% if not forloop.last %},{% endif %}{% endfor %}`],
+            datasets: [{
+                data: [`{% for stat in category_stats %}{{ stat.total_value }}{% if not forloop.last %},{% endif %}{% endfor %}`],
+                backgroundColor: [
+                    '#007bff', '#28a745', '#ffc107', '#dc3545', '#17a2b8',
+                    '#6f42c1', '#fd7e14', '#20c997', '#6c757d', '#343a40'
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        };
+
+        const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+        new Chart(categoryCtx, {
+            type: 'doughnut',
+            data: categoryData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    }
+                }
+            }
+        });
+
+        // Export functionality
+        function exportReport() {
+            // This would implement export to PDF/Excel functionality
+            alert('Export functionality would be implemented here');
+        }
+
+        // Custom template filters simulation
+        Number.prototype.div = function(divisor) {
+            return this / divisor;
+        };
+        
+        Number.prototype.mul = function(multiplier) {
+            return this * multiplier;
+        };
+        
+        Number.prototype.sub = function(subtractor) {
+            return this - subtractor;
+        };
+    </script>
+</body>
+</html>

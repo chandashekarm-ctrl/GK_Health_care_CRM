@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Customer - LeadMaster Pro{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4"><i class="fas fa-edit me-2"></i>Edit Customer</h2>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-triangle{% endif %} me-2"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="POST" action="" class="row g-3">
+        {% csrf_token %}
+        <div class="col-md-6">
+            <label for="customer_id" class="form-label">
+                <i class="fas fa-id-badge me-1"></i>Customer ID
+            </label>
+            <input type="text" class="form-control" id="customer_id" name="customer_id" value="{{ customer.customer_id }}" placeholder="Enter customer ID" required>
+            <div class="invalid-feedback">Please provide a customer ID.</div>
+        </div>
+
+        <div class="col-md-6">
+            <label for="customer_name" class="form-label">Customer Name<span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="customer_name" name="customer_name" value="{{ customer.customer_name }}" required>
+        </div>
+
+        <div class="col-md-6">
+            <label for="company_name" class="form-label">Company Name</label>
+            <input type="text" class="form-control" id="company_name" name="company_name" value="{{ customer.company_name }}">
+        </div>
+
+        <div class="col-md-6">
+            <label for="phone_number" class="form-label">Phone Number</label>
+            <input type="text" class="form-control" id="phone_number" name="phone_number" value="{{ customer.phone_number }}">
+        </div>
+
+        <div class="col-md-6">
+            <label for="phone_number_2" class="form-label">Alternate Phone</label>
+            <input type="text" class="form-control" id="phone_number_2" name="phone_number_2" value="{{ customer.phone_number_2 }}">
+        </div>
+
+        <div class="col-md-6">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" name="email" value="{{ customer.email }}">
+        </div>
+
+        <div class="col-md-6">
+            <label for="gstin" class="form-label">GSTIN</label>
+            <input type="text" class="form-control" id="gstin" name="gstin" value="{{ customer.gstin }}">
+        </div>
+
+        <div class="col-md-6">
+            <label for="address_line_1" class="form-label">Address Line 1</label>
+            <input type="text" class="form-control" id="address_line_1" name="address_line_1" value="{{ customer.address_line_1 }}">
+        </div>
+
+        <div class="col-md-6">
+            <label for="address_line_2" class="form-label">Address Line 2</label>
+            <input type="text" class="form-control" id="address_line_2" name="address_line_2" value="{{ customer.address_line_2 }}">
+        </div>
+
+        <div class="col-md-4">
+            <label for="city" class="form-label">City</label>
+            <input type="text" class="form-control" id="city" name="city" value="{{ customer.city }}">
+        </div>
+
+        <div class="col-md-4">
+            <label for="state" class="form-label">State</label>
+            <input type="text" class="form-control" id="state" name="state" value="{{ customer.state }}">
+        </div>
+
+        <div class="col-md-4">
+            <label for="pincode" class="form-label">Pincode</label>
+            <input type="text" class="form-control" id="pincode" name="pincode" value="{{ customer.pincode }}">
+        </div>
+
+        <div class="col-md-6">
+            <label for="company_website" class="form-label">Company Website</label>
+            <input type="url" class="form-control" id="company_website" name="company_website" value="{{ customer.company_website }}">
+        </div>
+
+        <div class="col-12">
+            <button type="submit" class="btn btn-success"><i class="fas fa-save me-1"></i>Update Customer</button>
+            <a href="{% url 'customer_list' %}" class="btn btn-secondary ms-2">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

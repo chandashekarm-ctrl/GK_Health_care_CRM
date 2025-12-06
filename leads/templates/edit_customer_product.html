@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+{% block title %}Edit Product - {{ product.product_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-2 px-md-4 py-3">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center">
+            <a href="{% url 'customer_detail' customer.id %}" class="btn btn-outline-secondary me-2 me-md-3 btn-mobile">
+                <i class="fas fa-arrow-left"></i>
+                <span class="d-none d-md-inline ms-1">Back</span>
+            </a>
+            <h4 class="mb-0 fw-bold">Edit Product - {{ product.product_name }}</h4>
+        </div>
+    </div>
+
+    <!-- Edit Product Form -->
+    <div class="card">
+        <div class="card-header bg-light fw-bold">
+            <i class="fas fa-edit me-2"></i>Update Product Details
+        </div>
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="product_id" class="form-label">Product ID <span class="text-danger">*</span></label>
+                        <input type="text" name="product_id" id="product_id" class="form-control" value="{{ product.product_id }}" required>
+                        <div class="form-text">Unique identifier for the product</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="product_name" class="form-label">Product Name <span class="text-danger">*</span></label>
+                        <input type="text" name="product_name" id="product_name" class="form-control" value="{{ product.product_name }}" required>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="manufacturer" class="form-label">Manufacturer</label>
+                        <select name="manufacturer" id="manufacturer" class="form-select mt-2">
+                            <option value="">Select Manufacturer</option>
+                            <option value="NK health care" {% if product.manufacturer == 'NK health care' %}selected{% endif %}>NK Health Care</option>
+                            <option value="Fresenius Medical Care" {% if product.manufacturer == 'Fresenius Medical Care' %}selected{% endif %}>Fresenius Medical Care</option>
+                            <option value="MaxLife" {% if product.manufacturer == 'MaxLife' %}selected{% endif %}>MaxLife</option>
+                            <option value="amvin aqua" {% if product.manufacturer == 'amvin aqua' %}selected{% endif %}>Amvin Aqua</option>
+                            <option value="GK health care" {% if product.manufacturer == 'GK health care' %}selected{% endif %}>GK Health Care</option>
+                            <option value="Other" {% if product.manufacturer == 'Other' %}selected{% endif %}>Other</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="serial_number" class="form-label">Serial Number</label>
+                        <input type="text" name="serial_number" id="serial_number" class="form-control" value="{{ product.serial_number }}" required>
+                    </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="selling_price" class="form-label">Selling Price <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text">₹</span>
+                            <input type="number" name="selling_price" id="selling_price" class="form-control" step="0.01" value="{{ product.selling_price }}" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="tax_percent" class="form-label">Tax %</label>
+                        <input type="number" name="tax_percent" id="tax_percent" class="form-control" step="0.01" value="{{ product.tax_percent|default:'' }}" placeholder="18.00">
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="purchase_price" class="form-label">Purchase Price</label>
+                        <div class="input-group">
+                            <span class="input-group-text">₹</span>
+                            <input type="number" name="purchase_price" id="purchase_price" class="form-control" step="0.01" value="{{ product.purchase_price|default:'' }}">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="product_unit" class="form-label">Product Unit</label>
+                        <select name="product_unit" id="product_unit" class="form-select">
+                            <option value="">Select Unit</option>
+                            <option value="pcs" {% if product.product_unit == 'pcs' %}selected{% endif %}>Pieces</option>
+                            <option value="kg" {% if product.product_unit == 'kg' %}selected{% endif %}>Kilogram</option>
+                            <option value="ltr" {% if product.product_unit == 'ltr' %}selected{% endif %}>Liter</option>
+                            <option value="box" {% if product.product_unit == 'box' %}selected{% endif %}>Box</option>
+                            <option value="nos" {% if product.product_unit == 'nos' %}selected{% endif %}>Numbers</option>
+                            <option value="mtr" {% if product.product_unit == 'mtr' %}selected{% endif %}>Meter</option>
+                            <option value="sqft" {% if product.product_unit == 'sqft' %}selected{% endif %}>Square Feet</option>
+                            <option value="set" {% if product.product_unit == 'set' %}selected{% endif %}>Set</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="hsn_sac" class="form-label">HSN/SAC Code</label>
+                        <input type="text" name="hsn_sac" id="hsn_sac" class="form-control" value="{{ product.hsn_sac }}" placeholder="e.g., 1234567890">
+                        <div class="form-text">Harmonized System Nomenclature/Service Accounting Code</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="category_id" class="form-label">Category</label>
+                        <select name="category_id" id="category_id" class="form-select">
+                            <option value="">Select Category</option>
+                            {% for category in categories %}
+                                <option value="{{ category.id }}" {% if product.category_id == category.id %}selected{% endif %}>{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="installation_date" class="form-label">Installation Date</label>
+                        <input type="date" name="installation_date" id="installation_date" class="form-control" value="{{ product.installation_date }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="warranty_period_date" class="form-label">Warranty Period End Date</label>
+                        <input type="date" name="warranty_period_date" id="warranty_period_date" class="form-control" value="{{ product.warranty_period_date }}">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea name="description" id="description" class="form-control" rows="3" placeholder="Product description, features, specifications...">{{ product.description }}</textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label for="product_image" class="form-label">Product Image</label>
+                    {% if product.product_image %}
+                        <div class="current-image mb-2">
+                            <img src="{{ product.product_image.url }}" alt="{{ product.product_name }}" class="img-thumbnail" style="max-width: 200px; max-height: 150px;">
+                            <div class="form-text">Current image</div>
+                        </div>
+                    {% endif %}
+                    <input type="file" name="product_image" id="product_image" class="form-control" accept="image/*">
+                    <div class="form-text">Upload new product image (JPG, PNG, WebP) - Leave empty to keep current image</div>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'customer_detail' customer.id %}" class="btn btn-secondary">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Update Product
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.btn-mobile {
+    padding: 8px 12px;
+    border-radius: 8px;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.form-control, .form-select {
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.card {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.card-header {
+    border-radius: 12px 12px 0 0 !important;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.text-danger {
+    color: #dc3545 !important;
+}
+
+.input-group-text {
+    background-color: #f8f9fa;
+    border: 1px solid #ced4da;
+    border-radius: 8px 0 0 8px;
+}
+
+.current-image {
+    padding: 10px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+}
+
+@media (max-width: 768px) {
+    .btn-mobile {
+        padding: 10px 16px;
+    }
+    
+    .d-flex.justify-content-between {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .d-flex.justify-content-between .btn {
+        width: 100%;
+    }
+}
+</style>
+
+{% endblock %}

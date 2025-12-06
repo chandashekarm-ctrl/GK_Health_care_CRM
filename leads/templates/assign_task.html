@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}Hospital/Clinic Lead Form{% endblock %}
+
+{% block extra_css %}
+  <style>
+    .card {
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .card-header {
+        border-radius: 10px 10px 0 0 !important;
+    }
+    
+    h5 {
+        color: #2c3e50;
+        font-weight: 600;
+    }
+    
+    .form-label {
+        font-weight: 500;
+    }
+    
+    .btn-primary {
+        background-color: #3498db;
+        border-color: #3498db;
+    }
+    
+    .btn-primary:hover {
+        background-color: #2980b9;
+        border-color: #2980b9;
+    }
+    
+    .form-check {
+        margin-bottom: 0.5rem;
+    }
+    
+    textarea {
+        resize: vertical;
+    }
+    
+    .remove-product-btn, .remove-parts-btn {
+        transition: opacity 0.3s ease;
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">Assign Task</h3>
+        </div>
+
+        <div class="card-body"> 
+          <form method="post" action="{% url 'assign_task' %}" enctype="multipart/form-data">  
+            {% csrf_token %}
+            <div class="mb-4">
+                <div class="row mb-2 mt-2">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Assign Date</label>
+                        <input type="date" name="assign_date" class="form-control" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Follow up Date</label>
+                        <input type="date" name="follow_up_date" class="form-control" required>
+                    </div>
+                </div> 
+
+                <div class="row mb-2">
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label">City (search)</label>
+                        <select name="city" class="form-control">
+                          <option value="">Select City</option>
+                          {% for city in cities %}
+                              <option value="{{ city }}">{{ city }}</option>
+                          {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label">State (search)</label>
+                        <select name="state" class="form-control">
+                          <option value="">Select State</option>
+                          {% for state in states %}
+                              <option value="{{ state }}">{{ state }}</option>
+                          {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mb-2">
+                  <div class="col-md-9 mb-3">
+                    <label class="form-label">Hospital ID/Name</label>
+                    <select type="text" name="hospital_id" class="form-control" placeholder="Enter Hospital ID" required >
+                      <option value="">Select Hospital ID</option>
+                        {% for hospital in hospitals %}
+                            <option value="{{ hospital.id }}">{{ hospital.id }} - {{hospital.hospital_name}}</option>
+                        {% endfor %}
+                    </select>
+                  </div>
+                </div>
+
+                <div class="row mb-2">
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Staff Member </label>
+                    <select name="staff_id" class="form-control" required>
+                      <option value="">Select Staff ID</option>
+                        {% for person in staff %}
+                            <option value="{{ person.id }}">{{ person.id }} - {{person.name}}</option>
+                        {% endfor %}
+                    </select>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Task Type</label>
+                    <select name="task_type" class="form-control" required>
+                      <option value="">Select Task</option>
+                      <option value="quotation_submitted">Quotation Submitted</option>
+                      <option value="payment_follow_up">Payment follow up</option>
+                      <option value="scrap_machine">Scrap Machine</option>
+                      <option value="ncp_solution">NCP_Solution</option>
+                      <option value="ncp_machine">NCP_Machine</option>
+                      <option value="fmc_amc">FMC_AMC</option>
+                      <option value="phone_call">Phone Call</option>
+                      <option value="pts_visit">PTS_Visit</option>
+                      <option value="citro_clear">Citro Clear</option>
+                      <option value="pulmonary">Pulmonary</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-control" name="description" rows="3" placeholder="Task Description" required></textarea>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="form-label">Remarks</label>
+                    <textarea class="form-control" name="remarks" rows="3" placeholder="Task Remarks" required></textarea>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                    <button class="btn btn-primary" type="submit">Submit</button>
+                </div>
+            </div>
+          </form> 
+        </div>
+    </div>
+</div>
+
+<script>
+  // JavaScript to dynamically filter hospital names based on selected city and state
+    document.addEventListener('DOMContentLoaded', function() {
+        const citySelect = document.querySelector('select[name="city"]');
+        const stateSelect = document.querySelector('select[name="state"]');
+        const hospitalSelect = document.querySelector('select[name="hospital_id"]');
+
+        function filterHospitals() {
+            const selectedCity = citySelect.value;
+            const selectedState = stateSelect.value;
+
+            // Clear existing options
+            hospitalSelect.innerHTML = '<option value="">Select Hospital ID</option>';
+
+            {% for hospital in hospitals %}
+                if ("{{ hospital.city|title }}" === selectedCity || "{{ hospital.state|title }}" === selectedState) {
+                    const option = document.createElement('option');
+                    option.value = "{{ hospital.id }}";
+                    option.textContent = "{{ hospital.id }} - {{ hospital.hospital_name }}";
+                    hospitalSelect.appendChild(option);
+                }
+            {% endfor %}
+        }
+
+        citySelect.addEventListener('change', filterHospitals);
+        stateSelect.addEventListener('change', filterHospitals);
+    });
+</script>
+
+{% endblock %}
+
+

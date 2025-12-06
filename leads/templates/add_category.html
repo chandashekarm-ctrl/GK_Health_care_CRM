@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">Add New Category</h3>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data" id="categoryForm">
+                {% csrf_token %}
+                
+                <div class="mb-3">
+                    <label for="category_image" class="form-label">Category Image</label>
+                    <input type="file" class="form-control" id="category_image" name="category_image" accept="image/*">
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="category_id" class="form-label">ID*</label>
+                        <input type="text" class="form-control" id="category_id" name="category_id" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="category_name" class="form-label">Category Name*</label>
+                        <input type="text" class="form-control" id="category_name" name="category_name" required>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Add Category
+                    </button>
+                    <a href="{% url 'new_lead' %}" class="btn btn-danger">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('categoryForm');
+    
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(form);
+        
+        fetch("{% url 'save_category' %}", {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = "{% url 'new_lead' %}";
+            } else {
+                alert('Error saving category: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error saving category');
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4>Add Staff Expense</h4>
+        </div>
+
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label>Staff Name</label>
+                    <select name="staff" class="form-control" required>
+                        <option value="">Select Staff</option>
+                        {% for s in staff %}
+                            <option value="{{ s.id }}">{{ s.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label>Expense Type</label>
+                    <select name="expense_type" class="form-control" required>
+                        {% for key, value in expense_types %}
+                            <option value="{{ key }}">{{ value }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label>Amount (₹)</label>
+                    <input type="number" step="0.01" name="amount" class="form-control" required>
+                </div>
+
+                <div class="mb-3">
+                    <label>Description</label>
+                    <textarea name="description" class="form-control"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label>Remark</label>
+                    <textarea name="remark" class="form-control"></textarea>
+                </div>    
+
+                <div class="mb-3">
+                    <label>Upload Bill</label>
+                    <input type="file" name="bill_image" class="form-control">
+                </div>
+
+                <button type="submit" class="btn btn-success">Save Expense</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

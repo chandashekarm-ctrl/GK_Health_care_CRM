@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}View Task{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card {
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .card-header {
+        border-radius: 10px 10px 0 0 !important;
+    }
+    
+    h5 {
+        color: #2c3e50;
+        font-weight: 600;
+    }
+    
+    .form-label {
+        font-weight: 500;
+    }
+    
+    .btn-primary {
+        background-color: #3498db;
+        border-color: #3498db;
+    }
+    
+    .btn-primary:hover {
+        background-color: #2980b9;
+        border-color: #2980b9;
+    }
+    
+    .form-check {
+        margin-bottom: 0.5rem;
+    }
+    
+    textarea {
+        resize: vertical;
+    }
+    
+    .remove-product-btn, .remove-parts-btn {
+        transition: opacity 0.3s ease;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">Task Form</h3>
+        </div>
+        <div class="card-body">    
+                <div class="mb-4">
+                    <!-- <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Assign Date</label>
+                            <input type="date" class="form-control" placeholder="{{task.assign_date}}" readonly>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Follow up Date</label>
+                            <input type="date" class="form-control" placeholder="{{task.follow_up_date}}" readonly>
+                        </div>
+                    </div> -->
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Hospital ID</label>
+                            <input type="text" class="form-control" placeholder="{{task.hospital_id.id}}" readonly>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Hospital Name</label>
+                            <input type="text" class="form-control" placeholder="{{task.hospital_id.hospital_name}}" readonly>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Staff ID</label>
+                            <input type="text" class="form-control" placeholder="{{task.staff_id.id}}" readonly>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Staff Name</label>
+                            <input type="text" class="form-control" placeholder="{{task.staff_id.name}}" readonly>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Task Type</label>
+                            <input type="text" class="form-control" placeholder="{{task.task_type}}" readonly>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" rows="3" placeholder="{{task.description}}" readonly></textarea>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label">Remarks</label>
+                        <textarea class="form-control" rows="3" placeholder="{{task.remarks}}" readonly></textarea>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a href="{% url 'manage_task' %}"><button class="btn btn-primary">Back</button></a>
+                    </div>
+                </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Add Staff Expense{% endblock %}
+
+{% block content %}
+
+<style>
+    .page-header-exp {
+        background: linear-gradient(135deg, #43cea2, #185a9d);
+        color: white;
+        padding: 1.3rem 1rem;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+    .page-title {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+    .expense-form-card {
+        border-radius: 12px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.08);
+    }
+</style>
+
+<div class="page-header-exp">
+    <h1 class="page-title">
+        <i class="fas fa-plus-circle me-2"></i>Add Staff Expense
+    </h1>
+</div>
+
+<div class="card expense-form-card">
+    <div class="card-body">
+
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="row g-3">
+
+                <!-- Staff -->
+                <div class="col-md-6">
+                    <label class="form-label">Staff</label>
+                    <select name="staff" class="form-select" required>
+                        <option value="">Select Staff</option>
+                        {% for staff in staff_members %}
+                        <option value="{{ staff.id }}">{{ staff.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Expense Type -->
+                <div class="col-md-6">
+                    <label class="form-label">Expense Type</label>
+                    <select name="expense_type" class="form-select" required>
+                        <option value="">Select Type</option>
+                        {% for key, label in expense_types %}
+                        <option value="{{ key }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Amount -->
+                <div class="col-md-6">
+                    <label class="form-label">Amount (₹)</label>
+                    <input type="number" step="0.01" class="form-control" name="amount" required>
+                </div>
+
+                <!-- Description -->
+                <div class="col-md-6">
+                    <label class="form-label">Description</label>
+                    <input type="text" class="form-control" name="description" placeholder="Optional">
+                </div>
+
+                <!-- Remark -->
+                <div class="col-12">
+                    <label class="form-label">Remark</label>
+                    <textarea name="remark" class="form-control" rows="3" placeholder="Optional"></textarea>
+                </div>
+
+                <!-- Bill Image -->
+                <div class="col-12">
+                    <label class="form-label">Upload Bill (Image)</label>
+                    <input type="file" class="form-control" name="bill_image" accept="image/*">
+                </div>
+
+            </div>
+
+            <div class="mt-4 d-flex gap-2">
+                <button class="btn btn-success">
+                    <i class="fas fa-check me-1"></i>Save Expense
+                </button>
+                <a href="{% url 'expense_dashboard' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Back
+                </a>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,350 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - LeadMaster Pro{% endblock %}
+
+{% block content %}
+
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem 1rem;
+        margin-bottom: 1rem;
+        border-radius: 0;
+    }
+
+    .page-title {
+        font-size: 1.8rem;
+        font-weight: 400;
+        margin-bottom: 0.5rem;
+        color: white;
+    }
+
+    .function-cards {
+        margin-top: 1.5rem;
+    }
+
+    .function-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.2rem;
+        text-align: center;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        border: 2px solid;
+        height: auto;
+        min-height: 120px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    }
+
+    .function-card-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .function-card-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+    }
+
+    /* Color variants */
+    .function-card.blue { border-color: #4A90E2; background: rgba(74, 144, 226, 0.08); }
+    .function-card.green { border-color: #7ED321; background: rgba(126, 211, 33, 0.08); }
+    .function-card.orange { border-color: #F5A623; background: rgba(245, 166, 35, 0.08); }
+    .function-card.purple { border-color: #9013FE; background: rgba(144, 19, 254, 0.08); }
+    .function-card.pink { border-color: #E91E63; background: rgba(233, 30, 99, 0.08); }
+    .function-card.teal { border-color: #00BCD4; background: rgba(0, 188, 212, 0.08); }
+    .function-card.red { border-color: #F44336; background: rgba(244, 67, 54, 0.08); }
+    .function-card.gray { border-color: #9E9E9E; background: rgba(158, 158, 158, 0.08); }
+
+    /* Charts and tables */
+    .dashboard-card {
+        margin-bottom: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    }
+
+    .card-header {
+        padding: 0.75rem 1rem;
+        background: white;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .card-title {
+        font-size: 1.1rem;
+        margin-bottom: 0;
+    }
+
+    /* Mobile-specific styles */
+    @media (max-width: 767.98px) {
+        .page-header {
+            padding: 1rem;
+        }
+        
+        .page-title {
+            font-size: 1.5rem;
+        }
+        
+        .function-card {
+            padding: 1rem;
+            min-height: 100px;
+        }
+        
+        .function-card-icon {
+            font-size: 1.75rem;
+        }
+        
+        #leadConversionChart,
+        #leadSourcesChart {
+            min-height: 250px;
+        }
+        
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .activity-timeline {
+            padding-left: 30px;
+        }
+        
+        .activity-badge {
+            left: -30px;
+            width: 25px;
+            height: 25px;
+            font-size: 0.8rem;
+        }
+    }
+
+    /* Desktop-specific styles */
+    @media (min-width: 768px) {
+        .page-header {
+            padding: 2rem;
+            border-radius: 0 0 1rem 1rem;
+        }
+        
+        .function-card {
+            height: 150px;
+        }
+        
+        #leadConversionChart,
+        #leadSourcesChart {
+            min-height: 300px;
+        }
+    }
+</style>
+
+<div class="page-header">
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1 class="page-title">
+                <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+            </h1>
+        </div>
+    </div>
+</div>
+<div class="container-fluid">
+    <!-- Function Cards -->
+    <div class="row">
+
+        <!-- Total Customers -->
+        <div class="col-6 col-md-4 col-lg-3">
+            <a href="{% url 'customer_list' %}" class="function-card blue text-decoration-none">
+                <div class="function-card-icon blue">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h5 class="function-card-title">Total Customers</h5>
+                <span class="badge bg-primary mt-1"> Total {{ total_leads }}</span>
+            </a>
+        </div>
+
+        <!-- Total Vendors -->
+        <div class="col-6 col-md-4 col-lg-3">
+            <a href="{% url 'vendor_list' %}" class="function-card blue text-decoration-none">
+                <div class="function-card-icon blue">
+                    <i class="fas fa-store"></i>
+                </div>
+                <h5 class="function-card-title">Total Vendors</h5>
+                <span class="badge bg-primary mt-1">Total {{ total_vendors }}</span>
+            </a>
+        </div>
+
+        <!-- Add Customer -->
+        <div class="col-6 col-md-4 col-lg-3">
+            <a href="{% url 'add_customer' %}" class="function-card orange text-decoration-none">
+                <div class="function-card-icon orange">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <h5 class="function-card-title">Add Customer</h5>
+            </a>
+        </div>
+
+        <!-- Add Vendor -->
+        <div class="col-6 col-md-4 col-lg-3">
+            <a href="{% url 'add_vendor' %}" class="function-card purple text-decoration-none">
+                <div class="function-card-icon purple">
+                    <i class="fas fa-plus"></i>
+                </div>
+                <h5 class="function-card-title">Add Vendor</h5>
+            </a>
+        </div>
+
+        <!-- Assign Task -->
+        <div class="col-6 col-md-4 col-lg-3">
+            <a href="{% url 'assign_task' %}" class="function-card blue text-decoration-none">
+                <div class="function-card-icon blue">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h5 class="function-card-title">Assign Task</h5>
+                <span class="badge bg-primary mt-1">Total {{ total_tasks }}</span>
+            </a>
+        </div>
+
+        <!-- Manage Task -->
+        <div class="col-6 col-md-4 col-lg-3">
+            <a href="{% url 'manage_task' %}" class="function-card pink text-decoration-none">
+                <div class="function-card-icon pink">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <h5 class="function-card-title">Manage Task</h5>
+                <span class="badge bg-primary mt-1">Total {{ total_tasks }}</span>
+            </a>
+        </div>
+
+        <!-- Create Product -->
+        <div class="col-6 col-md-4 col-lg-3">
+            <a href="{% url 'add_product' %}" class="function-card purple text-decoration-none">
+                <div class="function-card-icon purple">
+                    <i class="fas fa-box"></i>
+                </div>
+                <h5 class="function-card-title">Create Product</h5>
+            </a>
+        </div>
+
+        <!-- View Expenses -->
+        <div class="col-6 col-md-4 col-lg-3">
+            <a href="{% url 'staff_expense_list' %}" class="function-card orange text-decoration-none">
+                <div class="function-card-icon orange">
+                    <i class="fas fa-money-bill-wave"></i>
+                </div>
+                <h5 class="function-card-title">View Expenses</h5>
+            </a>
+        </div>
+
+        <!-- View All Products -->
+        <div class="col-6 col-md-4 col-lg-3">
+            <a href="{% url 'product_list' %}" class="function-card purple text-decoration-none">
+                <div class="function-card-icon red">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <h5 class="function-card-title">View All Products</h5>
+                <span class="badge bg-primary mt-1">Total {{ total_products }}</span>
+            </a>
+        </div>
+
+        <!-- Outstandings -->
+        <div class="col-6 col-md-4 col-lg-3">
+            <div class="function-card green">
+                <div class="function-card-icon green">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <h5 class="function-card-title">View Outstandings</h5>
+            </div>
+        </div>
+
+        <!-- Add Leads -->
+        <div class="col-6 col-md-4 col-lg-3">
+            <a href="{% url 'new_lead' %}" class="function-card gray text-decoration-none">
+                <div class="function-card-icon gray">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <h5 class="function-card-title">Add Leads</h5>
+            </a>
+        </div>
+
+        <!-- Total Leads -->
+        <div class="col-6 col-md-4 col-lg-3">
+            <a href="{% url 'hospital_leads_list' %}" class="function-card gray text-decoration-none">
+                <div class="function-card-icon blue">
+                    <i class="fas fa-users-cog"></i>
+                </div>
+                <h5 class="function-card-title">Total Leads</h5>
+                <span class="badge bg-primary mt-1"> Total {{ total_leads  }}</span>
+            </a>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- Include ApexCharts library -->
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Lead Conversion Chart
+        var conversionOptions = {
+            series: [{
+                name: 'Leads',
+                data: [1200, 800, 500, 300, 200]
+            }],
+            chart: {
+                type: 'bar',
+                height: '100%',
+                toolbar: { show: false }
+            },
+            plotOptions: {
+                bar: {
+                    borderRadius: 4,
+                    horizontal: true,
+                }
+            },
+            colors: ['#5e72e4'],
+            dataLabels: { enabled: false },
+            xaxis: {
+                categories: ['Visitors', 'Leads', 'Qualified', 'Proposal', 'Closed'],
+            }
+        };
+        var conversionChart = new ApexCharts(document.querySelector("#leadConversionChart"), conversionOptions);
+        conversionChart.render();
+
+        // Lead Sources Chart
+        var sourcesOptions = {
+            series: [42, 28, 18, 12],
+            chart: {
+                type: 'donut',
+                height: '100%'
+            },
+            labels: ['Website', 'Referral', 'Social Media', 'Other'],
+            colors: ['#5e72e4', '#2dce89', '#fb6340', '#11cdef'],
+            legend: { position: 'bottom' },
+            plotOptions: {
+                pie: {
+                    donut: {
+                        size: '65%',
+                        labels: {
+                            show: true,
+                            total: {
+                                show: true,
+                                label: 'Total Leads',
+                                color: '#6c757d'
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        var sourcesChart = new ApexCharts(document.querySelector("#leadSourcesChart"), sourcesOptions);
+        sourcesChart.render();
+    });
+</script>
+{% endblock %}

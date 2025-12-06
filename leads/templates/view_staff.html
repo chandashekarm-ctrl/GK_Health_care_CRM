@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Staff Details{% endblock %}
+
+{% block content %}
+
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #0d6efd, #003d99);
+        color: white;
+        padding: 1.2rem;
+        text-align: center;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+
+    .staff-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        max-width: 650px;
+        margin: auto;
+    }
+
+    .staff-photo {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        border: 3px solid #0d6efd;
+        object-fit: cover;
+    }
+
+    .detail-item {
+        margin-bottom: 10px;
+        font-size: 1rem;
+    }
+
+    .detail-item strong {
+        width: 130px;
+        display: inline-block;
+        color: #0d6efd;
+    }
+
+    .action-buttons a {
+        margin-right: 10px;
+    }
+</style>
+
+<!-- Header -->
+<div class="page-header">
+    <h3 class="mb-0">Staff Details</h3>
+</div>
+
+<!-- Main Card -->
+<div class="staff-card">
+
+    <div class="text-center mb-3">
+        {% if staff.upload_photo %}
+            <img src="{{ staff.upload_photo.url }}" class="staff-photo">
+        {% else %}
+            <img src="https://via.placeholder.com/120" class="staff-photo">
+        {% endif %}
+        <h4 class="mt-3">{{ staff.name }}</h4>
+    </div>
+
+    <!-- Details -->
+    <div class="detail-item"><strong>Email:</strong> {{ staff.email }}</div>
+    <div class="detail-item"><strong>Phone:</strong> {{ staff.phone_number }}</div>
+    <div class="detail-item"><strong>DOB:</strong> {{ staff.date_of_birth }}</div>
+    <div class="detail-item"><strong>Emergency:</strong> {{ staff.emergency_contact }}</div>
+    
+    <div class="detail-item"><strong>Aadhar:</strong> {{ staff.aadhar_number|default:"-" }}</div>
+    <div class="detail-item"><strong>PAN:</strong> {{ staff.pan_number|default:"-" }}</div>
+
+    <div class="detail-item"><strong>Bank:</strong> {{ staff.bank_name|default:"-" }}</div>
+    <div class="detail-item"><strong>Account No:</strong> {{ staff.bank_account_number|default:"-" }}</div>
+    <div class="detail-item"><strong>IFSC:</strong> {{ staff.ifsc_code|default:"-" }}</div>
+
+    <div class="detail-item"><strong>Mother:</strong> {{ staff.mother_name|default:"-" }}</div>
+    <div class="detail-item"><strong>Father:</strong> {{ staff.father_name|default:"-" }}</div>
+
+    <div class="detail-item"><strong>Address:</strong> {{ staff.address|default:"-" }}</div>
+
+    <!-- Buttons -->
+    <div class="mt-4 text-center action-buttons">
+        <a href="{% url 'edit_staff' staff.id %}" class="btn btn-warning text-dark">
+            <i class="fas fa-edit me-1"></i>Edit
+        </a>
+
+        <a href="{% url 'manage_staff' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Back
+        </a>
+    </div>
+</div>
+
+{% endblock %}

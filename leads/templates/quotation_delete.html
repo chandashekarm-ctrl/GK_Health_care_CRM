@@ -1,0 +1,316 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Quotation - {{ quotation.quotation_number }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .delete-container {
+        max-width: 600px;
+        margin: 50px auto;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    .delete-header {
+        background: linear-gradient(135deg, #dc3545, #c82333);
+        color: white;
+        padding: 30px;
+        text-align: center;
+    }
+    .delete-icon {
+        background: rgba(255,255,255,0.2);
+        border-radius: 50%;
+        width: 80px;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 2rem;
+    }
+    .delete-content {
+        padding: 40px;
+    }
+    .quotation-info {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin: 20px 0;
+        border-left: 4px solid #dc3545;
+    }
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .info-item:last-child {
+        border-bottom: none;
+    }
+    .info-label {
+        font-weight: 600;
+        color: #495057;
+    }
+    .info-value {
+        color: #6c757d;
+    }
+    .warning-box {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 20px 0;
+        text-align: center;
+    }
+    .warning-icon {
+        color: #856404;
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+    .btn-delete {
+        background: linear-gradient(45deg, #dc3545, #c82333);
+        border: none;
+        border-radius: 25px;
+        padding: 12px 30px;
+        color: white;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        min-width: 120px;
+    }
+    .btn-delete:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(220,53,69,0.3);
+        color: white;
+    }
+    .btn-cancel {
+        background: #6c757d;
+        border: none;
+        border-radius: 25px;
+        padding: 12px 30px;
+        color: white;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        min-width: 120px;
+    }
+    .btn-cancel:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+        color: white;
+    }
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 30px;
+    }
+    @media (max-width: 576px) {
+        .delete-container {
+            margin: 20px;
+            border-radius: 10px;
+        }
+        .delete-header {
+            padding: 20px;
+        }
+        .delete-icon {
+            width: 60px;
+            height: 60px;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+        .delete-content {
+            padding: 20px;
+        }
+        .action-buttons {
+            flex-direction: column-reverse;
+        }
+        .btn-delete, .btn-cancel {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .info-item {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .info-value {
+            margin-top: 5px;
+            font-weight: 500;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="delete-container">
+        <!-- Header -->
+        <div class="delete-header">
+            <div class="delete-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h3 class="mb-2">Delete Quotation</h3>
+            <p class="mb-0">Are you sure you want to delete this quotation?</p>
+        </div>
+
+        <!-- Content -->
+        <div class="delete-content">
+            <!-- Quotation Information -->
+            <div class="quotation-info">
+                <h5 class="mb-3">
+                    <i class="fas fa-file-invoice me-2"></i>Quotation Details
+                </h5>
+                <div class="info-item">
+                    <span class="info-label">Quotation Number:</span>
+                    <span class="info-value">{{ quotation.quotation_number }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Created Date:</span>
+                    <span class="info-value">{{ quotation.created_at|date:"F d, Y" }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Created By:</span>
+                    <span class="info-value">{{ quotation.created_by.get_full_name|default:quotation.created_by.username }}</span>
+                </div>
+                {% if quotation.category %}
+                <div class="info-item">
+                    <span class="info-label">Category:</span>
+                    <span class="info-value">{{ quotation.category.name }}</span>
+                </div>
+                {% endif %}
+                <div class="info-item">
+                    <span class="info-label">Total Amount:</span>
+                    <span class="info-value">₹{{ quotation.total_amount|floatformat:2 }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Items Count:</span>
+                    <span class="info-value">{{ quotation.items.count }} item{{ quotation.items.count|pluralize }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Status:</span>
+                    <span class="info-value">
+                        <span class="badge {% if quotation.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                            {% if quotation.is_active %}Active{% else %}Inactive{% endif %}
+                        </span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Warning -->
+            <div class="warning-box">
+                <div class="warning-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h6 class="text-warning mb-2">Warning: This action cannot be undone!</h6>
+                <p class="mb-0 text-muted">
+                    Deleting this quotation will permanently remove all associated data including items, 
+                    terms, and any related information. This action is irreversible.
+                </p>
+            </div>
+
+            <!-- Confirmation Form -->
+            <form method="post" id="deleteForm">
+                {% csrf_token %}
+                
+                <!-- Confirmation Checkbox -->
+                <div class="form-check text-center mb-4">
+                    <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+                    <label class="form-check-label" for="confirmDelete">
+                        I understand that this action cannot be undone and I want to proceed with deletion
+                    </label>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <a href="{% url 'quotation_detail' quotation.id %}" class="btn btn-cancel">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </a>
+                    <button type="submit" class="btn btn-delete" id="deleteBtn" disabled>
+                        <i class="fas fa-trash me-2"></i>Delete Quotation
+                    </button>
+                </div>
+            </form>
+
+            <!-- Alternative Actions -->
+            <div class="text-center mt-4">
+                <p class="text-muted mb-2">Not sure? You can also:</p>
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <a href="{% url 'edit_quotation' quotation.id %}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-edit me-1"></i>Edit Instead
+                    </a>
+                    <a href="{% url 'quotation_list' %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-list me-1"></i>View All Quotations
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const confirmCheckbox = document.getElementById('confirmDelete');
+        const deleteBtn = document.getElementById('deleteBtn');
+        const deleteForm = document.getElementById('deleteForm');
+
+        // Enable/disable delete button based on checkbox
+        confirmCheckbox.addEventListener('change', function() {
+            deleteBtn.disabled = !this.checked;
+            if (this.checked) {
+                deleteBtn.classList.remove('btn-secondary');
+                deleteBtn.classList.add('btn-delete');
+            } else {
+                deleteBtn.classList.remove('btn-delete');
+                deleteBtn.classList.add('btn-secondary');
+            }
+        });
+
+        // Form submission with additional confirmation
+        deleteForm.addEventListener('submit', function(e) {
+            if (!confirmCheckbox.checked) {
+                e.preventDefault();
+                alert('Please confirm that you want to delete this quotation.');
+                return;
+            }
+
+            // Final confirmation dialog
+            const confirmed = confirm(
+                `Are you absolutely sure you want to delete quotation "${document.querySelector('.info-value').textContent}"?\n\n` +
+                'This action cannot be undone and will permanently remove:\n' +
+                '• All quotation details\n' +
+                '• All associated items\n' +
+                '• All terms and conditions\n' +
+                '• Any related data\n\n' +
+                'Click OK to proceed with deletion or Cancel to abort.'
+            );
+
+            if (!confirmed) {
+                e.preventDefault();
+                return;
+            }
+
+            // Show loading state
+            deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Deleting...';
+            deleteBtn.disabled = true;
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // ESC key to cancel
+            if (e.key === 'Escape') {
+                window.location.href = "{% url 'quotation_detail' quotation.id %}";
+            }
+            
+            // Ctrl/Cmd + Enter to delete (if confirmed)
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && confirmCheckbox.checked) {
+                deleteForm.submit();
+            }
+        });
+
+        // Auto-focus on checkbox for keyboard navigation
+        confirmCheckbox.focus();
+    });
+</script>
+{% endblock %}

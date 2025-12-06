@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Edit Staff{% endblock %}
+
+{% block content %}
+
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #6a11cb, #2575fc);
+        color: white;
+        padding: 1.2rem 1rem;
+        border-radius: 10px;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .page-title {
+        margin: 0;
+        font-size: 1.6rem;
+        font-weight: 600;
+    }
+
+    .staff-form-card {
+        border-radius: 12px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.08);
+        padding: 20px;
+        background: white;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #333;
+    }
+
+    .staff-photo-preview {
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #2575fc;
+    }
+</style>
+
+
+<!-- HEADER -->
+<div class="page-header">
+    <h1 class="page-title"><i class="fas fa-edit me-2"></i>Edit Staff</h1>
+</div>
+
+
+<div class="card staff-form-card">
+    <div class="card-body">
+
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- Photo -->
+            <div class="text-center mb-3">
+                {% if staff.upload_photo %}
+                    <img src="{{ staff.upload_photo.url }}" class="staff-photo-preview">
+                {% else %}
+                    <img src="https://via.placeholder.com/110" class="staff-photo-preview">
+                {% endif %}
+                <div class="mt-2">
+                    <label class="form-label">Change Photo</label>
+                    <input type="file" name="upload_photo" class="form-control" accept="image/*">
+                </div>
+            </div>
+
+            <div class="row g-3">
+
+                <!-- Name -->
+                <div class="col-md-6">
+                    <label class="form-label">Name</label>
+                    <input type="text" name="name" class="form-control"
+                           value="{{ staff.name }}" required>
+                </div>
+
+                <!-- Phone -->
+                <div class="col-md-6">
+                    <label class="form-label">Phone Number</label>
+                    <input type="text" name="phone_number" class="form-control"
+                           value="{{ staff.phone_number }}" required>
+                </div>
+
+                <!-- Email -->
+                <div class="col-md-6">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-control"
+                           value="{{ staff.email }}">
+                </div>
+
+                <!-- DOB -->
+                <div class="col-md-6">
+                    <label class="form-label">Date of Birth</label>
+                    <input type="date" name="dob" class="form-control"
+                           value="{{ staff.date_of_birth|date:'Y-m-d' }}" required>
+                </div>
+
+                <!-- Emergency Contact -->
+                <div class="col-md-6">
+                    <label class="form-label">Emergency Contact</label>
+                    <input type="text" name="emergency_contact" class="form-control"
+                           value="{{ staff.emergency_contact }}">
+                </div>
+
+                <!-- PF No -->
+                <div class="col-md-6">
+                    <label class="form-label">PF Number</label>
+                    <input type="text" name="pf_number" class="form-control"
+                           value="{{ staff.pf_number }}">
+                </div>
+
+                <!-- Bank Name -->
+                <div class="col-md-6">
+                    <label class="form-label">Bank Name</label>
+                    <input type="text" name="bank_name" class="form-control"
+                           value="{{ staff.bank_name }}">
+                </div>
+
+                <!-- Account Number -->
+                <div class="col-md-6">
+                    <label class="form-label">Bank Account Number</label>
+                    <input type="text" name="bank_account_number" class="form-control"
+                           value="{{ staff.bank_account_number }}">
+                </div>
+
+                <!-- IFSC -->
+                <div class="col-md-6">
+                    <label class="form-label">IFSC Code</label>
+                    <input type="text" name="ifsc_code" class="form-control"
+                           value="{{ staff.ifsc_code }}">
+                </div>
+
+                <!-- PAN -->
+                <div class="col-md-6">
+                    <label class="form-label">PAN Number</label>
+                    <input type="text" name="pan_number" class="form-control"
+                           value="{{ staff.pan_number }}">
+                </div>
+
+                <!-- Aadhar -->
+                <div class="col-md-6">
+                    <label class="form-label">Aadhar Number</label>
+                    <input type="text" name="aadhar_number" class="form-control"
+                           value="{{ staff.aadhar_number }}">
+                </div>
+
+                <!-- Mother Name -->
+                <div class="col-md-6">
+                    <label class="form-label">Mother's Name</label>
+                    <input type="text" name="mother_name" class="form-control"
+                           value="{{ staff.mother_name }}">
+                </div>
+
+                <!-- Father Name -->
+                <div class="col-md-6">
+                    <label class="form-label">Father's Name</label>
+                    <input type="text" name="father_name" class="form-control"
+                           value="{{ staff.father_name }}">
+                </div>
+
+                <!-- Address -->
+                <div class="col-12">
+                    <label class="form-label">Address</label>
+                    <textarea name="address" class="form-control" rows="3">{{ staff.address }}</textarea>
+                </div>
+
+            </div>
+
+            <!-- BUTTONS -->
+            <div class="mt-4 d-flex gap-2">
+                <button class="btn btn-primary">
+                    <i class="fas fa-save me-1"></i>Save Changes
+                </button>
+
+                <a href="{% url 'manage_staff' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Back
+                </a>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+{% endblock %}

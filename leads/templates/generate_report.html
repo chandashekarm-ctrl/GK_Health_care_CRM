@@ -1,0 +1,606 @@
+{% extends "base.html" %}
+
+{% block title %}Reports - LeadMaster Pro{% endblock %}
+
+{% block content %}
+
+<style>
+    :root {
+        --primary-blue: #1976D2;
+        --card-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        --border-radius: 12px;
+    }
+
+    body {
+        background-color: #f5f5f5;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .page-header {
+        background: white;
+        padding: 1rem;
+        margin-bottom: 0;
+        border-bottom: 1px solid #e0e0e0;
+        top: 0;
+        z-index: 100;
+    }
+
+    .header-content {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .back-button {
+        background: #FFD700;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .back-button:hover {
+        transform: scale(1.05);
+        box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+    }
+
+    .back-button i {
+        color: #333;
+        font-size: 1.2rem;
+    }
+
+    .page-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+    }
+
+    .reports-container {
+        padding: 1.5rem 1rem;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    .reports-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .report-card {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 1.5rem 1rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: var(--card-shadow);
+        text-decoration: none;
+        color: inherit;
+        border: 2px solid transparent;
+        min-height: 120px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .report-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(25, 118, 210, 0.1), transparent);
+        transition: left 0.5s;
+    }
+
+    .report-card:hover::before {
+        left: 100%;
+    }
+
+    .report-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        text-decoration: none;
+        color: inherit;
+        border-color: var(--primary-blue);
+    }
+
+    .report-card:active {
+        transform: translateY(-1px);
+        transition: all 0.1s ease;
+    }
+
+    .report-card:focus {
+        outline: none;
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.2);
+    }
+
+    .report-icon {
+        font-size: 2.5rem;
+        color: var(--primary-blue);
+        margin-bottom: 0.75rem;
+        transition: all 0.3s ease;
+        position: relative;
+        z-index: 1;
+    }
+
+    .report-card:hover .report-icon {
+        transform: scale(1.1);
+        filter: drop-shadow(0 4px 8px rgba(25, 118, 210, 0.3));
+    }
+
+    .report-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+        line-height: 1.2;
+        transition: color 0.3s ease;
+        position: relative;
+        z-index: 1;
+    }
+
+    .report-card:hover .report-title {
+        color: var(--primary-blue);
+    }
+
+    /* Specific icon colors to match the design */
+    .installation-icon { color: #1976D2; }
+    .service-icon { color: #1976D2; }
+    .inspection-icon { color: #1976D2; }
+    .incident-icon { color: #1976D2; }
+    .quotation-icon { color: #1976D2; }
+    .purchase-icon { color: #1976D2; }
+    .delivery-icon { color: #1976D2; }
+
+    /* Single column for delivery challan */
+    .report-card.full-width {
+        grid-column: span 2;
+        max-width: 250px;
+        margin: 0 auto;
+    }
+
+    /* Extra Small Mobile (320px - 480px) */
+    @media (max-width: 480px) {
+        .page-header {
+            padding: 0.75rem 1rem;
+        }
+        
+        .back-button {
+            width: 36px;
+            height: 36px;
+        }
+        
+        .back-button i {
+            font-size: 1rem;
+        }
+        
+        .page-title {
+            font-size: 1.3rem;
+        }
+        
+        .reports-container {
+            padding: 1rem 0.75rem;
+            max-width: 100%;
+        }
+        
+        .reports-grid {
+            gap: 0.75rem;
+        }
+        
+        .report-card {
+            padding: 1rem 0.5rem;
+            min-height: 90px;
+            border-radius: 8px;
+        }
+        
+        .report-icon {
+            font-size: 1.8rem;
+            margin-bottom: 0.4rem;
+        }
+        
+        .report-title {
+            font-size: 0.85rem;
+            line-height: 1.1;
+        }
+    }
+
+    /* Small Mobile (481px - 576px) */
+    @media (min-width: 481px) and (max-width: 576px) {
+        .reports-container {
+            padding: 1.25rem 1rem;
+            max-width: 100%;
+        }
+        
+        .reports-grid {
+            gap: 1rem;
+        }
+        
+        .report-card {
+            padding: 1.25rem 0.75rem;
+            min-height: 110px;
+        }
+        
+        .report-icon {
+            font-size: 2.2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .report-title {
+            font-size: 0.9rem;
+        }
+    }
+
+    /* Tablet Portrait (577px - 768px) */
+    @media (min-width: 577px) and (max-width: 768px) {
+        .reports-container {
+            max-width: 540px;
+            padding: 1.5rem;
+        }
+        
+        .reports-grid {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.25rem;
+        }
+        
+        .report-card.full-width {
+            grid-column: span 3;
+            max-width: 200px;
+            margin: 0 auto;
+        }
+        
+        .report-card {
+            min-height: 120px;
+            padding: 1.5rem 1rem;
+        }
+        
+        .report-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.6rem;
+        }
+        
+        .report-title {
+            font-size: 0.95rem;
+        }
+    }
+
+    /* Tablet Landscape (769px - 992px) */
+    @media (min-width: 769px) and (max-width: 992px) {
+        .page-header {
+            padding: 1.25rem 1.5rem;
+        }
+        
+        .page-title {
+            font-size: 1.6rem;
+        }
+        
+        .reports-container {
+            max-width: 720px;
+            padding: 2rem 1.5rem;
+        }
+        
+        .reports-grid {
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+        }
+        
+        .report-card.full-width {
+            grid-column: span 2;
+            max-width: none;
+        }
+        
+        .report-card {
+            min-height: 140px;
+            padding: 1.75rem 1.25rem;
+        }
+        
+        .report-icon {
+            font-size: 2.8rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .report-title {
+            font-size: 1rem;
+        }
+    }
+
+    /* Desktop Small (993px - 1200px) */
+    @media (min-width: 993px) and (max-width: 1200px) {
+        .page-header {
+            padding: 1.5rem 2rem;
+        }
+        
+        .page-title {
+            font-size: 1.7rem;
+        }
+        
+        .reports-container {
+            max-width: 900px;
+            padding: 2.5rem 2rem;
+        }
+        
+        .reports-grid {
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.75rem;
+        }
+        
+        .report-card.full-width {
+            grid-column: span 2;
+            max-width: none;
+        }
+        
+        .report-card {
+            min-height: 160px;
+            padding: 2rem 1.5rem;
+        }
+        
+        .report-icon {
+            font-size: 3.2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .report-title {
+            font-size: 1.1rem;
+        }
+    }
+
+    /* Desktop Large (1201px+) */
+    @media (min-width: 1201px) {
+        .page-header {
+            padding: 2rem 2.5rem;
+        }
+        
+        .back-button {
+            width: 45px;
+            height: 45px;
+        }
+        
+        .back-button i {
+            font-size: 1.3rem;
+        }
+        
+        .page-title {
+            font-size: 1.8rem;
+        }
+        
+        .reports-container {
+            max-width: 1000px;
+            padding: 3rem 2.5rem;
+        }
+        
+        .reports-grid {
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+        }
+        
+        .report-card.full-width {
+            grid-column: span 2;
+            max-width: none;
+        }
+        
+        .report-card {
+            min-height: 180px;
+            padding: 2.5rem 2rem;
+            border-radius: 16px;
+        }
+        
+        .report-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        }
+        
+        .report-icon {
+            font-size: 3.5rem;
+            margin-bottom: 1.25rem;
+        }
+        
+        .report-title {
+            font-size: 1.2rem;
+        }
+    }
+
+    /* Ultra-wide screens (1400px+) */
+    @media (min-width: 1400px) {
+        .reports-container {
+            max-width: 1200px;
+            padding: 3.5rem 3rem;
+        }
+        
+        .reports-grid {
+            grid-template-columns: repeat(5, 1fr);
+            gap: 2.5rem;
+        }
+        
+        .report-card.full-width {
+            grid-column: span 2;
+        }
+        
+        .report-card {
+            min-height: 200px;
+            padding: 3rem 2.5rem;
+        }
+        
+        .report-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .report-title {
+            font-size: 1.3rem;
+        }
+    }
+</style>
+
+<div class="page-header">
+    <div class="header-content">
+        <button class="back-button" onclick="history.back()">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <h1 class="page-title">Reports</h1>
+    </div>
+</div>
+
+<div class="reports-container">
+    <div class="reports-grid">
+        <!-- Installation Report -->
+        <a href="{% url 'installation_report' %}" class="report-card">
+            <div class="report-icon installation-icon">
+                <i class="fas fa-wrench"></i>
+            </div>
+            <h3 class="report-title">Installation</h3>
+        </a>
+
+        <!-- Service Report -->
+        <a href="{% url 'service_report' %}" class="report-card">
+            <div class="report-icon service-icon">
+                <i class="fas fa-cogs"></i>
+            </div>
+            <h3 class="report-title">Service</h3>
+        </a>
+
+        <!-- Inspection Report -->
+        <a href="{% url 'inspection_report' %}" class="report-card">
+            <div class="report-icon inspection-icon">
+                <i class="fas fa-search"></i>
+            </div>
+            <h3 class="report-title">Inspection</h3>
+        </a>
+
+        <!-- Incident Report -->
+        <a href="{% url 'incident_report' %}" class="report-card">
+            <div class="report-icon incident-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h3 class="report-title">Incident</h3>
+        </a>
+
+        <!-- Quotation Report -->
+        <a href="{% url 'create_quotation' %}" class="report-card">
+            <div class="report-icon quotation-icon">
+                <i class="fas fa-briefcase"></i>
+            </div>
+            <h3 class="report-title">Quotation</h3>
+        </a>
+
+        <!-- Purchase Order Report -->
+        <a href="{% url 'purchase_order_report' %}" class="report-card">
+            <div class="report-icon purchase-icon">
+                <i class="fas fa-shopping-cart"></i>
+            </div>
+            <h3 class="report-title">Purchase Order</h3>
+        </a>
+
+        <!-- Delivery Challan Report -->
+        <a href="{% url 'delivery_challan_report' %}" class="report-card">
+            <div class="report-icon delivery-icon">
+                <i class="fas fa-clipboard-list"></i>
+            </div>
+            <h3 class="report-title">Delivery Challan</h3>
+        </a>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Enhanced touch and click interactions
+    document.addEventListener('DOMContentLoaded', function() {
+        const reportCards = document.querySelectorAll('.report-card');
+        let touchStartTime = 0;
+        
+        reportCards.forEach(card => {
+            // Touch events for mobile
+            card.addEventListener('touchstart', function(e) {
+                touchStartTime = Date.now();
+                this.style.transform = 'scale(0.96) translateY(-1px)';
+                this.style.transition = 'all 0.1s ease';
+            }, { passive: true });
+            
+            card.addEventListener('touchend', function(e) {
+                const touchDuration = Date.now() - touchStartTime;
+                
+                // Only proceed if it was a quick tap (< 200ms)
+                if (touchDuration < 200) {
+                    this.style.transform = '';
+                    this.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+                } else {
+                    // Reset for long touches
+                    this.style.transform = '';
+                    this.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+                }
+            }, { passive: true });
+            
+            card.addEventListener('touchcancel', function() {
+                this.style.transform = '';
+                this.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+            });
+            
+            // Mouse events for desktop
+            card.addEventListener('mousedown', function() {
+                this.style.transform = 'scale(0.98) translateY(-1px)';
+            });
+            
+            card.addEventListener('mouseup', function() {
+                this.style.transform = '';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = '';
+            });
+            
+            // Keyboard accessibility
+            card.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    this.style.transform = 'scale(0.96) translateY(-1px)';
+                    
+                    // Simulate click after short delay
+                    setTimeout(() => {
+                        this.click();
+                        this.style.transform = '';
+                    }, 100);
+                }
+            });
+        });
+        
+        // Handle orientation changes on mobile
+        window.addEventListener('orientationchange', function() {
+            setTimeout(() => {
+                // Force repaint to fix any layout issues
+                document.body.style.display = 'none';
+                document.body.offsetHeight; // Trigger reflow
+                document.body.style.display = '';
+            }, 100);
+        });
+        
+        // Smooth scroll to top when back button is clicked
+        const backButton = document.querySelector('.back-button');
+        if (backButton) {
+            backButton.addEventListener('click', function(e) {
+                // Add a small delay to allow the back navigation
+                setTimeout(() => {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }, 50);
+            });
+        }
+    });
+    
+    // Performance optimization: Reduce animations on slower devices
+    if (navigator.hardwareConcurrency && navigator.hardwareConcurrency < 4) {
+        document.documentElement.style.setProperty('--animation-duration', '0.2s');
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Employee - LeadMaster Pro{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-3 py-2">
+    <!-- Mobile Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center">
+            <a href="{% url 'vendor_detail' employee.vendor.id %}" class="btn btn-link p-0 me-3 text-dark">
+                <i class="fas fa-arrow-left fs-5"></i>
+            </a>
+            <h5 class="mb-0 fw-bold">Edit Employee</h5>
+        </div>
+    </div>
+
+    <!-- Employee Form -->
+    <form method="post" class="employee-form">
+        {% csrf_token %}
+        
+        <!-- Position Dropdown -->
+        <div class="form-group mb-3">
+            <div class="form-control-wrapper">
+                <i class="fas fa-list form-icon"></i>
+                <select class="form-control custom-select" name="position" required>
+                    <option value="">Position</option>
+                    <option value="Manager" {% if employee.position == 'Manager' %}selected{% endif %}>Manager</option>
+                    <option value="Accountant" {% if employee.position == 'Accountant' %}selected{% endif %}>Accountant</option>
+                    <option value="Sales Executive" {% if employee.position == 'Sales Executive' %}selected{% endif %}>Sales Executive</option>
+                    <option value="HR" {% if employee.position == 'HR' %}selected{% endif %}>HR</option>
+                    <option value="Developer" {% if employee.position == 'Developer' %}selected{% endif %}>Developer</option>
+                    <option value="Designer" {% if employee.position == 'Designer' %}selected{% endif %}>Designer</option>
+                    <option value="Marketing" {% if employee.position == 'Marketing' %}selected{% endif %}>Marketing</option>
+                    <option value="Operations" {% if employee.position == 'Operations' %}selected{% endif %}>Operations</option>
+                    <option value="Other" {% if employee.position == 'Other' %}selected{% endif %}>Other</option>
+                </select>
+                <i class="fas fa-chevron-down dropdown-icon"></i>
+            </div>
+        </div>
+
+        <!-- Employee Name -->
+        <div class="form-group mb-3">
+            <div class="form-control-wrapper">
+                <i class="fas fa-user form-icon"></i>
+                <input type="text" class="form-control" name="employee_name" placeholder="Enter Employee Name" value="{{ employee.name }}" required>
+            </div>
+        </div>
+
+        <!-- Phone Number -->
+        <div class="form-group mb-3">
+            <div class="form-control-wrapper">
+                <i class="fas fa-phone form-icon"></i>
+                <input type="tel" class="form-control" name="phone_number" placeholder="Enter phone number" value="{{ employee.phone_number }}" required>
+            </div>
+        </div>
+
+        <!-- Email Address -->
+        <div class="form-group mb-3">
+            <div class="form-control-wrapper">
+                <i class="fas fa-envelope form-icon"></i>
+                <input type="email" class="form-control" name="email" placeholder="Enter email address" value="{{ employee.email|default:'' }}">
+            </div>
+        </div>
+
+        <!-- Date of Birth -->
+        <div class="form-group mb-4">
+            <div class="form-control-wrapper">
+                <i class="fas fa-calendar form-icon"></i>
+                <input type="date" class="form-control" name="date_of_birth" placeholder="Date of Birth" value="{{ employee.date_of_birth|date:'Y-m-d' }}">
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-save">Update Employee</button>
+            <a href="{% url 'vendor_detail' employee.vendor.id %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<style>
+/* Mobile-first responsive design */
+.employee-form {
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+.form-control-wrapper {
+    position: relative;
+    margin-bottom: 0;
+}
+
+.form-control {
+    background-color: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 25px;
+    padding: 15px 20px 15px 50px;
+    font-size: 16px;
+    height: auto;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    background-color: #fff;
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    outline: 0;
+}
+
+.form-control::placeholder {
+    color: #6c757d;
+    font-weight: 400;
+}
+
+.form-icon {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    font-size: 16px;
+    z-index: 2;
+}
+
+.custom-select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-color: #f8f9fa;
+    cursor: pointer;
+}
+
+.dropdown-icon {
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    font-size: 14px;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.btn-save {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    padding: 15px;
+    font-size: 16px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+.btn-save:hover {
+    background-color: #218838;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.btn-save:active {
+    transform: translateY(0);
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    padding: 15px;
+    font-size: 16px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+    color: white;
+    text-decoration: none;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* Form validation styles */
+.form-control:invalid:not(:placeholder-shown) {
+    border-color: #dc3545;
+}
+
+.form-control:valid:not(:placeholder-shown) {
+    border-color: #28a745;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+    .container-fluid {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    .form-control {
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+}
+
+@media (min-width: 768px) {
+    .employee-form {
+        max-width: 500px;
+    }
+    
+    .form-control {
+        padding: 12px 20px 12px 45px;
+    }
+}
+</style>
+
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }}{% endblock %}
+
+{% block content %}
+<h2>Product Details</h2>
+<div class="card p-3">
+    <h4>{{ product.name }}</h4>
+    <p><strong>ID:</strong> {{ product.id }}</p>
+    <p><strong>Selling Price:</strong> ₹{{ product.selling_price }}</p>
+    <p><strong>Purchase Price:</strong> ₹{{ product.purchase_price }}</p>
+    <p><strong>Tax %:</strong> {{ product.tax_percent }}%</p>
+    <p><strong>HSN/SAC:</strong> {{ product.hsn_sac }}</p>
+    <p><strong>Unit:</strong> {{ product.unit }}</p>
+    <p><strong>Category:</strong> {{ product.category.name }}</p>
+    <p><strong>Description:</strong> {{ product.description }}</p>
+    {% if product.product_image %}
+        <img src="{{ product.product_image.url }}" alt="Product Image" class="img-fluid rounded" width="200">
+    {% endif %}
+</div>
+<a href="{% url 'product_list' %}" class="btn btn-secondary mt-3">Back to List</a>
+{% endblock %}

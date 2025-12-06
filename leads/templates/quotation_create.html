@@ -1,0 +1,911 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<!-- <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"> -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css" rel="stylesheet">
+<style>
+    .form-section {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 15px 20px;
+        margin-bottom: 20px;
+        border-left: 4px solid #007bff;
+    }
+    .form-section h5 {
+        color: #007bff;
+        margin-bottom: 15px;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+    .section-icon {
+        margin-right: 8px;
+    }
+    .btn-custom {
+        background: linear-gradient(45deg, #007bff, #0056b3);
+        border: none;
+        border-radius: 25px;
+        padding: 10px 30px;
+        color: white;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    .btn-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,123,255,0.3);
+        color: white;
+    }
+    .quotation-header {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+        padding: 20px;
+        border-radius: 10px 10px 0 0;
+        margin-bottom: 0;
+    }
+    .main-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    .item-row {
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+    }
+    .item-row:hover {
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .delete-item {
+        background: #dc3545;
+        border: none;
+        color: white;
+        border-radius: 25px;
+        padding: 8px 12px;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+    }
+    .delete-item:hover {
+        background: #c82333;
+        transform: translateY(-1px);
+    }
+    .add-item {
+        background: #28a745;
+        border: none;
+        color: white;
+        border-radius: 25px;
+        padding: 10px 25px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    .add-item:hover {
+        background: #218838;
+        transform: translateY(-1px);
+    }
+    .totals-section {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 20px;
+        position: sticky;
+        top: 20px;
+    }
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid #dee2e6;
+        font-size: 1rem;
+    }
+    .total-row:last-child {
+        border-bottom: none;
+        font-weight: bold;
+        font-size: 1.2rem;
+        color: #007bff;
+        margin-top: 10px;
+        padding-top: 15px;
+        border-top: 2px solid #007bff;
+    }
+    
+    /* Datepicker styling */
+    .datepicker {
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .datepicker table tr td.active,
+    .datepicker table tr td.active:hover,
+    .datepicker table tr td.active.disabled,
+    .datepicker table tr td.active.disabled:hover {
+        background-color: #007bff;
+        background-image: linear-gradient(to bottom, #007bff, #0056b3);
+    }
+    
+    /* Mobile Responsive Styles */
+    @media (max-width: 768px) {
+        .container-fluid {
+            padding: 10px !important;
+        }
+        
+        .quotation-header {
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .quotation-header h4 {
+            font-size: 1.3rem;
+            margin-bottom: 5px;
+        }
+        
+        .quotation-header small {
+            font-size: 0.85rem;
+        }
+        
+        .form-section {
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .form-section h5 {
+            font-size: 1rem;
+            margin-bottom: 12px;
+        }
+        
+        .item-row {
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .delete-item {
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px;
+        }
+        
+        .totals-section {
+            position: relative;
+            margin-top: 20px;
+            padding: 15px;
+        }
+        
+        .total-row {
+            font-size: 0.95rem;
+            padding: 8px 0;
+        }
+        
+        .total-row:last-child {
+            font-size: 1.1rem;
+        }
+        
+        .btn-custom {
+            width: 100%;
+            margin-top: 10px;
+            padding: 12px 20px;
+        }
+        
+        .form-actions {
+            flex-direction: column-reverse;
+        }
+        
+        .form-actions .btn {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        /* Stack form elements vertically on mobile */
+        .row.align-items-end > div {
+            margin-bottom: 15px;
+        }
+        
+        /* Adjust input groups for mobile */
+        .input-group {
+            width: 100%;
+        }
+        
+        /* Make selects more touch-friendly */
+        .form-select, .form-control {
+            min-height: 45px;
+            font-size: 16px; /* Prevents zoom on iOS */
+        }
+        
+        /* Improve textarea usability */
+        textarea.form-control {
+            min-height: 80px;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .quotation-header h4 {
+            font-size: 1.2rem;
+        }
+        
+        .form-section h5 {
+            font-size: 0.95rem;
+        }
+        
+        .btn-custom, .add-item {
+            font-size: 0.9rem;
+            padding: 10px 15px;
+        }
+        
+        .delete-item {
+            font-size: 0.8rem;
+        }
+        
+        /* Smaller padding on very small screens */
+        .main-container {
+            margin: 5px;
+            border-radius: 8px;
+        }
+        
+        .p-4 {
+            padding: 15px !important;
+        }
+    }
+    
+    /* Tablet specific adjustments */
+    @media (min-width: 769px) and (max-width: 1024px) {
+        .totals-section {
+            position: relative;
+        }
+        
+        .main-container {
+            margin: 10px;
+        }
+    }
+    
+    /* Form validation styles */
+    .is-invalid {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+    
+    /* Loading state */
+    .btn-loading {
+        pointer-events: none;
+        opacity: 0.7;
+    }
+    
+    /* Better spacing for small text */
+    .form-text {
+        font-size: 0.85rem;
+        margin-top: 5px;
+    }
+    
+    /* Icon improvements */
+    .section-icon {
+        color: #007bff;
+        font-size: 1.1rem;
+    }
+    
+    /* Back button styling */
+    .back-button {
+        text-decoration: none;
+        color: white;
+        transition: opacity 0.3s ease;
+    }
+    
+    .back-button:hover {
+        opacity: 0.8;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-4">
+    <div class="main-container">
+        <!-- Header -->
+        <div class="quotation-header">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <a href="{% url 'quotation_list' %}" class="back-button me-3 d-none d-md-inline">
+                        <i class="fas fa-arrow-left fa-lg"></i>
+                    </a>
+                    <div>
+                        <h4 class="mb-1">{{ title }}</h4>
+                        <small class="d-none d-sm-inline">Create professional quotations with ease</small>
+                    </div>
+                </div>
+                <div class="d-none d-lg-block">
+                    <small><i class="fas fa-clock me-1"></i>Auto-save enabled</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Content -->
+        <div class="p-4">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="fas fa-check-circle me-2"></i>{{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- ERROR DISPLAY SECTION -->
+            {% if form.errors %}
+                <div class="alert alert-danger">
+                    <h6><i class="fas fa-exclamation-triangle me-2"></i>Form Errors:</h6>
+                    {% for field, errors in form.errors.items %}
+                        <p><strong>{{ field|title }}:</strong> 
+                        {% for error in errors %}{{ error }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% if formset.errors %}
+                <div class="alert alert-danger">
+                    <h6><i class="fas fa-exclamation-triangle me-2"></i>Item Errors:</h6>
+                    {% for error_dict in formset.errors %}
+                        {% if error_dict %}
+                            {% for field, errors in error_dict.items %}
+                                <p><strong>Item {{ forloop.parentloop.counter0|add:1 }} - {{ field|title }}:</strong> 
+                                {% for error in errors %}{{ error }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+                            {% endfor %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% if formset.non_form_errors %}
+                <div class="alert alert-danger">
+                    <h6><i class="fas fa-exclamation-triangle me-2"></i>Formset Errors:</h6>
+                    {% for error in formset.non_form_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="post" id="quotationForm">
+                {% csrf_token %}
+                
+                <!-- Basic Information -->
+                <div class="form-section">
+                    <h5><i class="fas fa-file-invoice section-icon"></i>Basic Information</h5>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Quotation Number *</label>
+                            {{ form.quotation_number }}
+                            {% if form.quotation_number.errors %}
+                                <div class="text-danger small mt-1">{{ form.quotation_number.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Date *</label>
+                            <div class="input-group">
+                                {{ form.quotation_date }}
+                                <span class="input-group-text">
+                                    <i class="fas fa-calendar-alt"></i>
+                                </span>
+                            </div>
+                            {% if form.quotation_date.errors %}
+                                <div class="text-danger small mt-1">{{ form.quotation_date.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">Select quotation date</small>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Customer Name *</label>
+                            {{ form.customer_name }}
+                            {% if form.customer_name.errors %}
+                                <div class="text-danger small mt-1">{{ form.customer_name.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">Enter customer/client name</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Details -->
+                <div class="form-section">
+                    <h5><i class="fas fa-boxes section-icon"></i>Product Details</h5>
+                    <div class="row">
+                        <div class="col-lg-6 mb-3">
+                            <label class="form-label">Category</label>
+                            {{ form.category }}
+                            {% if form.category.errors %}
+                                <div class="text-danger small mt-1">{{ form.category.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">Select a category for this quotation</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Items Section -->
+                <div class="form-section">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0"><i class="fas fa-list section-icon"></i>Items</h5>
+                        <button type="button" class="btn add-item" onclick="addItem()">
+                            <i class="fas fa-plus me-2"></i><span class="d-none d-sm-inline">Add Item</span>
+                        </button>
+                    </div>
+                    
+                    <div id="items-section">
+                        {{ formset.management_form }}
+                        {% for form in formset %}
+                            <div class="item-row" data-form-index="{{ forloop.counter0 }}">
+                                <div class="row align-items-end">
+                                    <div class="col-lg-3 col-md-6 mb-3">
+                                        <label class="form-label">Item Name *</label>
+                                        {{ form.item_name }}
+                                        {% if form.item_name.errors %}
+                                            <div class="text-danger small mt-1">{{ form.item_name.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-lg-3 col-md-6 mb-3">
+                                        <label class="form-label">Description</label>
+                                        {{ form.description }}
+                                        {% if form.description.errors %}
+                                            <div class="text-danger small mt-1">{{ form.description.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-lg-2 col-md-4 col-6 mb-3">
+                                        <label class="form-label">Quantity *</label>
+                                        {{ form.quantity }}
+                                        {% if form.quantity.errors %}
+                                            <div class="text-danger small mt-1">{{ form.quantity.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-lg-2 col-md-4 col-6 mb-3">
+                                        <label class="form-label">Unit Price *</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">₹</span>
+                                            {{ form.unit_price }}
+                                        </div>
+                                        {% if form.unit_price.errors %}
+                                            <div class="text-danger small mt-1">{{ form.unit_price.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-lg-2 col-md-4 mb-3">
+                                        <label class="form-label">Total</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">₹</span>
+                                            <input type="text" class="form-control item-total" readonly value="0.00">
+                                        </div>
+                                        {% if forloop.counter0 > 0 %}
+                                            <button type="button" class="btn delete-item mt-2" onclick="removeItem(this)">
+                                                <i class="fas fa-trash me-1"></i><span class="d-none d-lg-inline">Remove</span>
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {{ form.DELETE }}
+                                {% for hidden in form.hidden_fields %}
+                                    {{ hidden }}
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Terms & Conditions -->
+                <div class="form-section">
+                    <h5><i class="fas fa-file-contract section-icon"></i>Terms & Conditions</h5>
+                    <div class="row">
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <label class="form-label">Payment *</label>
+                            {{ form.payment_terms }}
+                            {% if form.payment_terms.errors %}
+                                <div class="text-danger small mt-1">{{ form.payment_terms.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">Select payment terms</small>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <label class="form-label">Delivery *</label>
+                            {{ form.delivery_terms }}
+                            {% if form.delivery_terms.errors %}
+                                <div class="text-danger small mt-1">{{ form.delivery_terms.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">Select delivery terms</small>
+                        </div>
+                        <div class="col-lg-2 col-md-4 mb-3">
+                            <label class="form-label">Freight *</label>
+                            {{ form.freight_charges }}
+                            {% if form.freight_charges.errors %}
+                                <div class="text-danger small mt-1">{{ form.freight_charges.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">Freight charges</small>
+                        </div>
+                        <div class="col-lg-2 col-md-4 mb-3">
+                            <label class="form-label">Validity *</label>
+                            {{ form.validity_period }}
+                            {% if form.validity_period.errors %}
+                                <div class="text-danger small mt-1">{{ form.validity_period.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">Validity period</small>
+                        </div>
+                        <div class="col-lg-2 col-md-4 mb-3">
+                            <label class="form-label">Warranty *</label>
+                            {{ form.warranty_period }}
+                            {% if form.warranty_period.errors %}
+                                <div class="text-danger small mt-1">{{ form.warranty_period.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">Warranty period</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bank Details -->
+                <div class="form-section">
+                    <h5><i class="fas fa-university section-icon"></i>Bank Details & Tax</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Select Bank *</label>
+                            {{ form.bank }}
+                            {% if form.bank.errors %}
+                                <div class="text-danger small mt-1">{{ form.bank.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">Select bank for payment</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Tax Type *</label>
+                            {{ form.tax_type }}
+                            {% if form.tax_type.errors %}
+                                <div class="text-danger small mt-1">{{ form.tax_type.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">Select applicable tax</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notes and Totals Section -->
+                <div class="row">
+                    <div class="col-lg-8 mb-4">
+                        <div class="form-section">
+                            <h5><i class="fas fa-sticky-note section-icon"></i>Additional Notes</h5>
+                            {{ form.notes }}
+                            {% if form.notes.errors %}
+                                <div class="text-danger small mt-1">{{ form.notes.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">Any additional information or special instructions</small>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="totals-section">
+                            <h6 class="mb-3"><i class="fas fa-calculator me-2"></i>Summary</h6>
+                            <div class="total-row">
+                                <span>Subtotal</span>
+                                <span id="subtotal">₹0.00</span>
+                            </div>
+                            <div class="total-row">
+                                <span id="tax-label">Tax (0%)</span>
+                                <span id="tax-amount">₹0.00</span>
+                            </div>
+                            <div class="total-row">
+                                <span>Total Amount</span>
+                                <span id="total-amount">₹0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="d-flex justify-content-between align-items-center mt-4 form-actions">
+                    <a href="{% url 'quotation_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </a>
+                    <button type="submit" class="btn btn-custom">
+                        <i class="fas fa-save me-2"></i>
+                        <span>{% if quotation %}Update{% else %}Generate{% endif %} Quotation</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+<script>
+    let formIndex = {{ formset.total_form_count }};
+    
+    // Initialize datepicker
+    $(document).ready(function() {
+        $('.datepicker').datepicker({
+            format: 'dd/mm/yyyy',
+            autoclose: true,
+            todayHighlight: true,
+            todayBtn: 'linked',
+            orientation: 'bottom auto'
+        });
+        
+        // Initialize calculations
+        attachEventListeners();
+        calculateTotals();
+    });
+    
+    function addItem() {
+        const itemsSection = document.getElementById('items-section');
+        const totalForms = document.getElementById('id_items-TOTAL_FORMS');
+        
+        const newForm = `
+            <div class="item-row" data-form-index="${formIndex}">
+                <div class="row align-items-end">
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <label class="form-label">Item Name *</label>
+                        <input type="text" name="items-${formIndex}-item_name" class="form-control" placeholder="Enter item name" required>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea name="items-${formIndex}-description" class="form-control" rows="2" placeholder="Item description"></textarea>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-6 mb-3">
+                        <label class="form-label">Quantity</label>
+                        <input type="number" name="items-${formIndex}-quantity" class="form-control quantity-input" min="0.01" step="0.01" placeholder="1.00" value="1">
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-6 mb-3">
+                        <label class="form-label">Unit Price</label>
+                        <div class="input-group">
+                            <span class="input-group-text">₹</span>
+                            <input type="number" name="items-${formIndex}-unit_price" class="form-control price-input" min="0.01" step="0.01" placeholder="0.00">
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-4 mb-3">
+                        <label class="form-label">Total</label>
+                        <div class="input-group">
+                            <span class="input-group-text">₹</span>
+                            <input type="text" class="form-control item-total" readonly value="0.00">
+                        </div>
+                        <button type="button" class="btn delete-item mt-2" onclick="removeItem(this)">
+                            <i class="fas fa-trash me-1"></i><span class="d-none d-lg-inline">Remove</span>
+                        </button>
+                    </div>
+                </div>
+                <input type="hidden" name="items-${formIndex}-id" id="id_items-${formIndex}-id">
+            </div>
+        `;
+        
+        itemsSection.insertAdjacentHTML('beforeend', newForm);
+        totalForms.value = parseInt(totalForms.value) + 1;
+        formIndex++;
+        
+        // Add event listeners to new inputs
+        attachEventListeners();
+        
+        // Smooth scroll to new item on mobile
+        if (window.innerWidth <= 768) {
+            setTimeout(() => {
+                const newItem = itemsSection.lastElementChild;
+                newItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        }
+    }
+    
+    function removeItem(button) {
+        const itemRow = button.closest('.item-row');
+        const deleteInput = itemRow.querySelector('input[name$="-DELETE"]');
+        
+        if (deleteInput) {
+            deleteInput.checked = true;
+            itemRow.style.display = 'none';
+        } else {
+            itemRow.remove();
+            updateFormIndices();
+        }
+        
+        calculateTotals();
+    }
+    
+    function updateFormIndices() {
+        const totalForms = document.getElementById('id_items-TOTAL_FORMS');
+        const itemRows = document.querySelectorAll('.item-row:not([style*="display: none"])');
+        
+        totalForms.value = itemRows.length;
+        
+        itemRows.forEach((row, index) => {
+            const inputs = row.querySelectorAll('input, textarea, select');
+            inputs.forEach(input => {
+                if (input.name) {
+                    input.name = input.name.replace(/items-\d+-/, `items-${index}-`);
+                    input.id = input.id ? input.id.replace(/id_items-\d+-/, `id_items-${index}-`) : '';
+                }
+            });
+        });
+    }
+    
+    function calculateTotals() {
+    let subtotal = 0;
+    // Fix: Use the correct ID for tax select element
+    const taxSelect = document.getElementById('id_tax_type'); // Changed from 'tax-select' to 'id_tax_type'
+    const taxPercentage = parseFloat(taxSelect?.selectedOptions[0]?.dataset.percentage || 0);
+    
+    // Calculate each item total
+    document.querySelectorAll('.item-row:not([style*="display: none"])').forEach(row => {
+        const quantity = parseFloat(row.querySelector('.quantity-input')?.value || 0);
+        const price = parseFloat(row.querySelector('.price-input')?.value || 0);
+        const total = quantity * price;
+        
+        const totalInput = row.querySelector('.item-total');
+        if (totalInput) {
+            totalInput.value = total.toFixed(2);
+            subtotal += total;
+        }
+    });
+    
+    const taxAmount = (subtotal * taxPercentage) / 100;
+    const totalAmount = subtotal + taxAmount;
+    
+    // Update display with Indian number formatting
+    document.getElementById('subtotal').textContent = '₹' + subtotal.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    document.getElementById('tax-label').textContent = `Tax (${taxPercentage}%)`;
+    document.getElementById('tax-amount').textContent = '₹' + taxAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    document.getElementById('total-amount').textContent = '₹' + totalAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+
+// Enhanced version with better tax handling
+function calculateTotalsEnhanced() {
+    let subtotal = 0;
+    const taxSelect = document.getElementById('id_tax_type');
+    
+    // Get tax percentage from selected option
+    let taxPercentage = 0;
+    if (taxSelect && taxSelect.selectedOptions.length > 0) {
+        const selectedOption = taxSelect.selectedOptions[0];
+        
+        // Try to get from data attribute first
+        if (selectedOption.dataset.percentage) {
+            taxPercentage = parseFloat(selectedOption.dataset.percentage);
+        } else {
+            // Fallback: extract from option text (e.g., "GST (18%)")
+            const match = selectedOption.textContent.match(/\((\d+(?:\.\d+)?)%?\)/);
+            if (match) {
+                taxPercentage = parseFloat(match[1]);
+            }
+        }
+    }
+    
+    // Calculate each item total
+    document.querySelectorAll('.item-row:not([style*="display: none"])').forEach(row => {
+        const quantityInput = row.querySelector('input[name$="-quantity"]') || row.querySelector('.quantity-input');
+        const priceInput = row.querySelector('input[name$="-unit_price"]') || row.querySelector('.price-input');
+        
+        const quantity = parseFloat(quantityInput?.value || 0);
+        const price = parseFloat(priceInput?.value || 0);
+        const total = quantity * price;
+        
+        const totalInput = row.querySelector('.item-total');
+        if (totalInput) {
+            totalInput.value = total.toFixed(2);
+            subtotal += total;
+        }
+    });
+    
+    const taxAmount = (subtotal * taxPercentage) / 100;
+    const totalAmount = subtotal + taxAmount;
+    
+    // Update display
+    const subtotalEl = document.getElementById('subtotal');
+    const taxLabelEl = document.getElementById('tax-label');
+    const taxAmountEl = document.getElementById('tax-amount');
+    const totalAmountEl = document.getElementById('total-amount');
+    
+    if (subtotalEl) subtotalEl.textContent = '₹' + subtotal.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    if (taxLabelEl) taxLabelEl.textContent = `Tax (${taxPercentage}%)`;
+    if (taxAmountEl) taxAmountEl.textContent = '₹' + taxAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    if (totalAmountEl) totalAmountEl.textContent = '₹' + totalAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    
+    console.log('Tax calculation:', { subtotal, taxPercentage, taxAmount, totalAmount }); // Debug log
+}
+
+// Improved event listener attachment
+function attachEventListeners() {
+    // Remove existing listeners to prevent duplicates
+    document.querySelectorAll('input[name$="-quantity"], input[name$="-unit_price"], .quantity-input, .price-input').forEach(input => {
+        // Clone node to remove all event listeners
+        const newInput = input.cloneNode(true);
+        input.parentNode.replaceChild(newInput, input);
+        
+        // Add fresh event listener
+        newInput.addEventListener('input', calculateTotalsEnhanced);
+        newInput.addEventListener('change', calculateTotalsEnhanced);
+    });
+    
+    // Tax type change listener
+    const taxSelect = document.getElementById('id_tax_type');
+    if (taxSelect) {
+        // Clone to remove existing listeners
+        const newTaxSelect = taxSelect.cloneNode(true);
+        taxSelect.parentNode.replaceChild(newTaxSelect, taxSelect);
+        
+        newTaxSelect.addEventListener('change', calculateTotalsEnhanced);
+    }
+}
+
+// Initialize tax data attributes (if not already set in Django template)
+function initializeTaxData() {
+    const taxSelect = document.getElementById('id_tax_type');
+    if (taxSelect) {
+        Array.from(taxSelect.options).forEach(option => {
+            if (!option.dataset.percentage && option.textContent.includes('(') && option.textContent.includes('%')) {
+                const match = option.textContent.match(/\((\d+(?:\.\d+)?)%?\)/);
+                if (match) {
+                    option.dataset.percentage = match[1];
+                }
+            }
+        });
+    }
+}
+
+// Updated initialization
+document.addEventListener('DOMContentLoaded', function() {
+    initializeTaxData();
+    attachEventListeners();
+    calculateTotalsEnhanced();
+    
+    // Form submission handling
+    const form = document.getElementById('quotationForm');
+    const submitBtn = form.querySelector('button[type="submit"]');
+    
+    form.addEventListener('submit', function() {
+        submitBtn.classList.add('btn-loading');
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+    });
+});
+    
+    // Form validation
+    document.getElementById('quotationForm').addEventListener('submit', function(e) {
+        const hasItems = document.querySelectorAll('.item-row:not([style*="display: none"]) input[name$="-item_name"]').length > 0;
+        
+        if (!hasItems) {
+            e.preventDefault();
+            alert('Please add at least one item to the quotation.');
+            return;
+        }
+        
+        // Validate required fields
+        const requiredFields = document.querySelectorAll('[required]');
+        let isValid = true;
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('Please fill in all required fields marked with *');
+            
+            // Reset button state
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.classList.remove('btn-loading');
+            submitBtn.innerHTML = '<i class="fas fa-save me-2"></i><span>{% if quotation %}Update{% else %}Generate{% endif %} Quotation</span>';
+        }
+    });
+    
+    // Remove validation errors on input
+    document.addEventListener('input', function(e) {
+        if (e.target.classList.contains('is-invalid')) {
+            e.target.classList.remove('is-invalid');
+        }
+    });
+    
+    // Auto-hide success messages
+    setTimeout(function() {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+            const bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        });
+    }, 5000);
+</script>
+{% endblock %}

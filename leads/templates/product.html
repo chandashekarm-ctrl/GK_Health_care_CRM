@@ -1,0 +1,40 @@
+
+               
+               <html><!-- 6. Product Information -->
+                <div class="mb-4">
+                    <h5 class="border-bottom pb-2">Product Information</h5>
+                    
+                    <!-- Product Container (Will hold multiple product dropdowns) -->
+                    <div id="productContainer">
+                        <!-- Default first product row -->
+                        <div class="product-row mb-3">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <select class="form-select product-id" name="products[0][id]" required>
+                                        <option value="">Select Product ID</option>
+                                        {% for product in products %}
+                                        <option value="{{ product.id }}">{{ product.id }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <select class="form-select product-name" name="products[0][name]" required>
+                                        <option value="">Select Product Name</option>
+                                        {% for product in products %}
+                                        <option value="{{ product.name }}">{{ product.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Add Product Button -->
+                    <button type="button" id="addProductBtn" class="btn btn-outline-primary mt-2">
+                        <i class="fas fa-plus me-2"></i> Add Another Product
+                    </button>
+                </div>
+                <script>
+ 
+</script>
+</html>

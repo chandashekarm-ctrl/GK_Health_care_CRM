@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Delete Lead{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h3>Are you sure you want to delete this lead?</h3>
+    <p><strong>{{ lead.hospital_name }}</strong> ({{ lead.first_name }} {{ lead.last_name }})</p>
+    
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Yes, Delete</button>
+        <a href="{% url 'hospital_lead_list' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

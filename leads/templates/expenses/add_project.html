@@ -1,0 +1,413 @@
+{% extends "base.html" %}
+
+{% block title %}Add Project - Expense Management{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --primary-color: #5e72e4;
+        --success-color: #2dce89;
+        --danger-color: #dc3545;
+    }
+
+    body {
+        background-color: #f8f9fe;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border-radius: 0 0 1rem 1rem;
+    }
+
+    .form-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        overflow: hidden;
+        border: none;
+    }
+
+    .form-header {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 2rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .form-body {
+        padding: 2rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .form-control {
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        padding: 0.75rem;
+        transition: all 0.3s ease;
+        font-size: 1rem;
+        width: 100%;
+    }
+
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(94, 114, 228, 0.25);
+        transform: translateY(-1px);
+        outline: none;
+    }
+
+    .form-control.is-invalid {
+        border-color: var(--danger-color);
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+    }
+
+    .invalid-feedback {
+        color: var(--danger-color);
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: block;
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #4c63d2 100%);
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        font-size: 1rem;
+        color: white;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(94, 114, 228, 0.3);
+        text-decoration: none;
+        display: inline-block;
+        cursor: pointer;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(94, 114, 228, 0.4);
+        color: white;
+    }
+
+    .btn-cancel {
+        background: #6c757d;
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        color: white;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-cancel:hover {
+        background: #5a6268;
+        transform: translateY(-1px);
+        color: white;
+    }
+
+    .required {
+        color: var(--danger-color);
+    }
+
+    .form-text {
+        color: #6c757d;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+
+    .alert {
+        border-radius: 8px;
+        border: none;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .alert-success {
+        background-color: #d1e7dd;
+        color: #0f5132;
+    }
+
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #842029;
+    }
+
+    @media (max-width: 768px) {
+        .page-header {
+            padding: 1rem;
+        }
+        
+        .form-header,
+        .form-body {
+            padding: 1.5rem;
+        }
+
+        .d-flex.gap-3 {
+            flex-direction: column;
+            gap: 1rem !important;
+        }
+    }
+</style>
+
+<div class="page-header">
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="mb-2">
+                    <i class="fas fa-plus-circle me-2"></i>
+                    Add New Project
+                </h1>
+                <p class="mb-0 opacity-75">Create a new project to track expenses</p>
+            </div>
+            <a href="{% url 'expense_dashboard' %}" class="btn btn-light">
+                <i class="fas fa-arrow-left me-2"></i>
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+            <!-- Display messages -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="card form-card">
+                <div class="form-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-folder-plus me-2"></i>
+                        Project Information
+                    </h4>
+                </div>
+                <div class="form-body">
+                    {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <ul class="mb-0">
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                            <li><strong>{{ field|capfirst }}:</strong> {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+
+                        {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <form method="post" id="projectForm" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Project ID Field -->
+                        <div class="mb-4">
+                            <label for="id_project_id" class="form-label">
+                                Project ID <span class="required">*</span>
+                            </label>
+                            <input type="text" 
+                                   name="project_id" 
+                                   id="id_project_id" 
+                                   class="form-control{% if form.project_id.errors %} is-invalid{% endif %}" 
+                                   placeholder="Enter Project ID (e.g., PRJ-001)"
+                                   value="{% if form.project_id.value %}{{ form.project_id.value }}{% endif %}"
+                                   maxlength="50"
+                                   required>
+                            <div class="form-text">Enter a unique identifier for this project (e.g., PRJ-001, WEBSITE-2025)</div>
+                            {% if form.project_id.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.project_id.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Project Name Field -->
+                        <div class="mb-4">
+                            <label for="id_project_name" class="form-label">
+                                Project Name <span class="required">*</span>
+                            </label>
+                            <input type="text" 
+                                   name="project_name" 
+                                   id="id_project_name" 
+                                   class="form-control{% if form.project_name.errors %} is-invalid{% endif %}" 
+                                   placeholder="Enter Project Name"
+                                   value="{% if form.project_name.value %}{{ form.project_name.value }}{% endif %}"
+                                   maxlength="200"
+                                   required>
+                            <div class="form-text">Enter a descriptive name for your project</div>
+                            {% if form.project_name.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.project_name.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Started Date Field -->
+                        <div class="mb-4">
+                            <label for="id_started_date" class="form-label">
+                                Started Date <span class="required">*</span>
+                            </label>
+                            <input type="date" 
+                                   name="started_date" 
+                                   id="id_started_date" 
+                                   class="form-control{% if form.started_date.errors %} is-invalid{% endif %}" 
+                                   value="{% if form.started_date.value %}{{ form.started_date.value|date:'Y-m-d' }}{% endif %}"
+                                   required>
+                            <div class="form-text">Select the project start date</div>
+                            {% if form.started_date.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.started_date.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="d-flex gap-3 justify-content-end">
+                            <a href="{% url 'expense_dashboard' %}" class="btn btn-cancel">
+                                <i class="fas fa-times me-2"></i>
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-submit">
+                                
+                                <i class="fas fa-save me-2"></i>
+                                Create Project
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('projectForm');
+    const projectId = document.getElementById('id_project_id');
+    const projectName = document.getElementById('id_project_name');
+    const startedDate = document.getElementById('id_started_date');
+    
+    // Set default date to today if not set
+    if (startedDate && !startedDate.value) {
+        const today = new Date().toISOString().split('T')[0];
+        startedDate.value = today;
+    }
+    
+    // Client-side validation
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        
+        // Validate project ID
+        if (!projectId.value.trim()) {
+            showError(projectId, 'Project ID is required');
+            isValid = false;
+        } else if (projectId.value.trim().length < 3) {
+            showError(projectId, 'Project ID must be at least 3 characters');
+            isValid = false;
+        } else {
+            clearError(projectId);
+        }
+        
+        // Validate project name
+        if (!projectName.value.trim()) {
+            showError(projectName, 'Project Name is required');
+            isValid = false;
+        } else if (projectName.value.trim().length < 3) {
+            showError(projectName, 'Project Name must be at least 3 characters');
+            isValid = false;
+        } else {
+            clearError(projectName);
+        }
+        
+        // Validate started date
+        if (!startedDate.value) {
+            showError(startedDate, 'Started Date is required');
+            isValid = false;
+        } else {
+            clearError(startedDate);
+        }
+        
+        if (!isValid) {
+            e.preventDefault();
+        }
+    });
+    
+    function showError(element, message) {
+        element.classList.add('is-invalid');
+        let errorDiv = element.parentNode.querySelector('.invalid-feedback');
+        if (!errorDiv) {
+            errorDiv = document.createElement('div');
+            errorDiv.className = 'invalid-feedback';
+            element.parentNode.appendChild(errorDiv);
+        }
+        errorDiv.textContent = message;
+    }
+    
+    function clearError(element) {
+        element.classList.remove('is-invalid');
+        let errorDiv = element.parentNode.querySelector('.invalid-feedback');
+        if (errorDiv && !errorDiv.hasAttribute('data-server-error')) {
+            errorDiv.remove();
+        }
+    }
+    
+    // Auto-generate project ID suggestion
+    projectName.addEventListener('input', function() {
+        if (!projectId.value || projectId.getAttribute('data-auto-generated') === 'true') {
+            const suggestion = this.value
+                .toUpperCase()
+                .replace(/[^A-Z0-9\s]/g, '')
+                .split(' ')
+                .filter(word => word.length > 0)
+                .map(word => word.substring(0, 3))
+                .join('-');
+            
+            if (suggestion.length >= 3) {
+                const timestamp = new Date().getFullYear().toString().substr(-2) + 
+                                 ('0' + (new Date().getMonth() + 1)).slice(-2);
+                projectId.placeholder = `Suggestion: ${suggestion}-${timestamp}`;
+            }
+        }
+    });
+    
+    // Track if project ID was auto-generated
+    projectId.addEventListener('input', function() {
+        if (this.value) {
+            this.removeAttribute('data-auto-generated');
+        }
+    });
+    
+    // Remove invalid class on input
+    [projectId, projectName, startedDate].forEach(field => {
+        field.addEventListener('input', function() {
+            if (this.classList.contains('is-invalid')) {
+                clearError(this);
+            }
+        });
+    });
+});
+</script>
+
+{% endblock %}

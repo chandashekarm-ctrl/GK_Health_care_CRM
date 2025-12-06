@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Hospital/Clinic Lead Form{% endblock %}
+
+{% block extra_css %}  
+    <style>
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-header {
+            border-radius: 10px 10px 0 0 !important;
+        }
+        
+        h5 {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        
+        .form-label {
+            font-weight: 500;
+        }
+        
+        .btn-primary {
+            background-color: #3498db;
+            border-color: #3498db;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+            border-color: #2980b9;
+        }
+        
+        .form-check {
+            margin-bottom: 0.5rem;
+        }
+        
+        textarea {
+            resize: vertical;
+        }
+        
+        .remove-product-btn, .remove-parts-btn {
+            transition: opacity 0.3s ease;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">Add Staff Member</h3>
+        </div>
+
+        <div class="card-body"> 
+          <form method="post" action="{% url 'add_staff' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <!-- NAME + DOB -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Name <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control" placeholder="Enter Name" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Date of Birth<span class="text-danger">*</span></label>
+                        <input type="date" name="dob" class="form-control">
+                    </div>
+                </div>
+
+                <!-- EMAIL -->
+                <div class="row mb-3">
+                    <div class="col-md-9">
+                        <label class="form-label">Email<span class="text-danger">*</span></label>
+                        <input type="email" name="email" class="form-control" placeholder="Enter Email">
+                    </div>
+                </div>
+
+                <!-- PHONE + EMERGENCY -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Phone Number <span class="text-danger">*</span></label>
+                        <input type="text" name="phone_number" class="form-control" placeholder="Enter Phone Number" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Emergency Contact<span class="text-danger">*</span></label>
+                        <input type="text" name="emergency_contact" class="form-control" placeholder="Enter Emergency Number">
+                    </div>
+                </div>
+
+                <!-- PF NUMBER -->
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label class="form-label">PF Number<span class="text-danger">*</span></label>
+                        <input type="text" name="pf_number" class="form-control" placeholder="Enter PF Number">
+                    </div>
+                </div>
+
+                <!-- BANK DETAILS -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Bank Name<span class="text-danger">*</span></label>
+                        <input type="text" name="bank_name" class="form-control" placeholder="Enter Bank Name">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Bank Account Number<span class="text-danger">*</span></label>
+                        <input type="text" name="bank_account_number" class="form-control" placeholder="Enter Account No">
+                    </div>
+                </div>
+
+                <!-- IFSC + PAN -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">IFSC Code<span class="text-danger">*</span></label>
+                        <input type="text" name="ifsc_code" class="form-control" placeholder="Enter IFSC Code">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">PAN Number<span class="text-danger">*</span></label>
+                        <input type="text" name="pan_number" class="form-control" placeholder="Enter PAN No">
+                    </div>
+                </div>
+
+                <!-- PARENTS -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Mother Name<span class="text-danger">*</span></label>
+                        <input type="text" name="mother_name" class="form-control" placeholder="Enter Mother Name">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Father Name<span class="text-danger">*</span></label>
+                        <input type="text" name="father_name" class="form-control" placeholder="Enter Father Name">
+                    </div>
+                </div>
+
+                <!-- ADDRESS -->
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label class="form-label">Address<span class="text-danger">*</span></label>
+                        <input type="text" name="address" class="form-control" placeholder="Enter Address">
+                    </div>
+                </div>
+
+                <!-- AADHAR -->
+                <div class="row mb-3">
+                    <div class="col-md-10">
+                        <label class="form-label">Aadhar Number<span class="text-danger">*</span></label>
+                        <input type="text" name="aadhar_number" class="form-control" placeholder="Enter Aadhar Number">
+                    </div>
+                </div>
+
+                <!-- PHOTO -->
+                <div class="mb-4">
+                    <label class="form-label">Upload Photo<span class="text-danger">*</span> <span class="text-danger">( upload 20 KM )</span></label>
+                    <input type="file" name="upload_photo" class="form-control">
+                </div>
+
+                <!-- SUBMIT -->
+                <div class="d-flex justify-content-end">
+                    <button class="btn btn-primary" type="submit">
+                        Submit
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

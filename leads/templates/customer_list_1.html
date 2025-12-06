@@ -1,0 +1,380 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<style>
+    .view-toggle-btn.active {
+        background-color: #0d6efd !important;
+        color: white !important;
+    }
+
+    .lead-card {
+        border: 1px solid #e5e5e5;
+        border-radius: 12px;
+        padding: 16px;
+        background: #fff;
+        transition: 0.2s ease;
+    }
+    .lead-card:hover {
+        box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    }
+
+    .avatar-sm {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        font-size: 20px;
+    }
+
+    /* Responsive fix for small screens */
+    @media(max-width: 576px) {
+        .lead-card {
+            padding: 14px;
+        }
+        .table-responsive {
+            font-size: 14px;
+        }
+        .view-toggle-btn {
+            font-size: 14px;
+            padding: 6px 10px;
+        }
+    }
+
+@media(max-width: 576px) {
+    .page-header .badge {
+        margin: 6px;
+        font-size: 23px;
+        padding: 4px 8px;
+    }
+}
+
+
+</style>
+
+
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center flex-wrap">
+        <div>
+            <h1 class="page-title">
+                <i class="fas fa-users me-2"></i>Customers
+            </h1>
+
+            <!-- Exact style you requested -->
+            <span class="badge bg-primary">
+                Total: {{ hospital_leads|length }}
+            </span>
+        </div>
+    </div>
+</div>
+
+
+<!-- MOBILE DROPDOWN FILTER BUTTON -->
+<div class="d-md-none mb-3">
+    <button class="btn btn-primary w-100 d-flex justify-content-between align-items-center"
+            data-bs-toggle="collapse" data-bs-target="#filtersDropdown">
+        <span>Filters</span>
+        <i class="fas fa-filter"></i>
+    </button>
+</div>
+
+
+<!-- FILTER CARD -->
+<div id="filtersDropdown" class="collapse d-md-block">
+<div class="card">
+    <div class="card-body bg-light border-bottom">
+        
+        <div class="row g-3 align-items-center">
+
+            <!-- Hospital Filter -->
+            <form class="col-md-3 d-flex" method="get" action="{% url 'customer_list' %}">
+                <input type="hidden" name="q" id="hiddenHospitalRow">
+                
+                <div class="input-group">
+                    <select class="form-control" name="hospital"
+                            onchange="document.getElementById('hiddenHospitalRow').value = 'hospital_name '+this.options[this.selectedIndex].text;">
+                        <option value="">Hospital ID</option>
+                        {% for hospital in hospitals %}
+                        <option value="{{ hospital.id }}">
+                            {{ hospital.id }} - {{ hospital.hospital_name }} - {{ hospital.city }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <button class="btn btn-primary" title="Search">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </form>
+
+            <!-- City Filter -->
+            <form class="col-md-3 d-flex" method="get" action="{% url 'customer_list' %}">
+                <input type="hidden" name="q" id="hiddenCityRow">
+
+                <div class="input-group">
+                    <select class="form-control" name="city"
+                            onchange="document.getElementById('hiddenCityRow').value = 'city '+this.value;">
+                        <option value="">City</option>
+                        {% for city in cities %}
+                        {% if city %}
+                        <option value="{{ city }}">{{ city }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                    <button class="btn btn-primary" title="Search">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </form>
+
+            <!-- State Filter -->
+            <form class="col-md-3 d-flex" method="get" action="{% url 'customer_list' %}">
+                <input type="hidden" name="q" id="hiddenStateRow">
+
+                <div class="input-group">
+                    <select class="form-control" name="state"
+                            onchange="document.getElementById('hiddenStateRow').value = 'state '+this.value;">
+                        <option value="">State</option>
+                        {% for state in states %}
+                        {% if state %}
+                        <option value="{{ state }}">{{ state }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                    <button class="btn btn-primary" title="Search">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </form>
+
+            <!-- CLEAN FILTER BUTTON -->
+            <div class="col-md-3">
+                <a href="{% url 'customer_list' %}" class="btn btn-outline-danger w-100">
+                    <i class="fas fa-times-circle me-1"></i> Clear Filters
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- VIEW TOGGLE BUTTONS -->
+<div class="container mt-4">
+    <div class="d-flex justify-content-end mb-3">
+        <button id="tableViewBtn" class="btn btn-outline-primary view-toggle-btn me-2">
+            <i class="fas fa-table"></i> Table View
+        </button>
+        <button id="cardViewBtn" class="btn btn-outline-primary view-toggle-btn active">
+            <i class="fas fa-list"></i> Card View
+        </button>
+    </div>
+
+
+<!-- ========================= TABLE VIEW ========================= -->
+<div id="tableView">
+    <div class="card">
+        <div class="card-body p-0">
+
+            {% if hospital_leads %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Hospital</th>
+                            <th>Type</th>
+                            <th>Contact</th>
+                            <th>Location</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for lead in hospital_leads %}
+                        <tr>
+
+                            <td class="fw-bold text-primary">HL-{{ lead.id }}</td>
+
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-sm bg-primary text-white d-flex align-items-center justify-content-center fw-bold me-3">
+                                        {{ lead.hospital_name|first|upper }}
+                                    </div>
+
+                                    <div>
+                                        <strong>{{ lead.hospital_name }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ lead.first_name }} {{ lead.last_name }}</small>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td>
+                                <span class="badge {% if lead.hospital_type == 'Direct Hospital' %} bg-success {% elif lead.hospital_type == 'Distributed' %} bg-warning text-dark {% else %} bg-secondary {% endif %}">
+                                    {{ lead.hospital_type }}
+                                </span>
+                            </td>
+
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fas fa-phone text-primary"></i> {{ lead.phone }}
+
+                                    <a href="https://wa.me/{{ lead.phone }}?text=Hello%20{{ lead.name }},%20I%20am%20contacting%20you%20regarding%20your%20enquiry."
+                                        class="text-success ms-2" target="_blank">
+                                            <i class="fab fa-whatsapp fa-lg"></i>
+                                    </a>
+
+                                    <a href="tel:{{ lead.phone }}" class="text-primary">
+                                        <i class="fas fa-phone-alt fa-lg"></i>
+                                    </a>
+                                </div>
+
+                                {% if lead.email %}
+                                <small class="text-muted d-block mt-1">{{ lead.email }}</small>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                <i class="fas fa-map-marker-alt text-danger"></i>
+                                {{ lead.city }}, {{ lead.state }}
+                                {% if lead.pincode %}
+                                    <br><small class="text-muted">{{ lead.pincode }}</small>
+                                {% endif %}
+                            </td>
+
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center gap-2">
+                                    <a href="{% url 'hospital_lead_detail' lead.id %}"
+                                       class="btn btn-sm btn-outline-primary rounded-circle">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'hospital_lead_edit' lead.id %}"
+                                       class="btn btn-sm btn-outline-warning rounded-circle">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </div>
+                            </td>
+
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+
+                </table>
+            </div>
+
+            {% else %}
+            <div class="p-4 text-center text-muted">
+                <i class="fas fa-exclamation-circle me-2"></i>No hospital leads found.
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+
+
+
+<!-- ========================= CARD VIEW ========================= -->
+<div id="cardView" style="display: none;">
+
+    {% for lead in hospital_leads %}
+    <div class="lead-card mb-3">
+
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap">
+
+            <div class="d-flex align-items-center gap-3 mb-2">
+                <div class="avatar-sm bg-primary text-white d-flex align-items-center justify-content-center fw-bold rounded-circle">
+                    {{ lead.hospital_name|first|upper }}
+                </div>
+
+                <div>
+                    <h6 class="mb-0 fw-bold">{{ lead.hospital_name }}</h6>
+                    <small class="text-muted">{{ lead.first_name }} {{ lead.last_name }}</small>
+                </div>
+            </div>
+
+            <span class="badge {% if lead.hospital_type == 'Direct Hospital' %} bg-success {% elif lead.hospital_type == 'Distributed' %} bg-warning text-dark {% else %} bg-secondary {% endif %}">
+                {{ lead.hospital_type }}
+            </span>
+        </div>
+
+        <hr class="my-2">
+
+        <!-- Contact -->
+        <div class="mb-2">
+            <i class="fas fa-phone text-primary"></i> {{ lead.phone }}
+            {% if lead.email %}
+                <br><small class="text-muted">{{ lead.email }}</small>
+            {% endif %}
+        </div>
+
+        <!-- Location -->
+        <div class="mb-3">
+            <i class="fas fa-map-marker-alt text-danger"></i>
+            {{ lead.city }}, {{ lead.state }}
+            {% if lead.pincode %}
+                <br><small class="text-muted">{{ lead.pincode }}</small>
+            {% endif %}
+        </div>
+
+
+        <!-- ACTIONS ROW -->
+        <div class="d-flex justify-content-between align-items-center mt-3">
+
+            <!-- LEFT: WhatsApp + Call -->
+            <div class="d-flex align-items-center gap-4">
+                <a href="https://wa.me/{{ lead.phone }}" class="text-success" title="WhatsApp">
+                    <i class="fab fa-whatsapp" style="font-size: 26px;"></i>
+                </a>
+
+                <a href="tel:{{ lead.phone }}" class="text-primary" title="Call">
+                    <i class="fas fa-phone-alt" style="font-size: 26px;"></i>
+                </a>
+            </div>
+
+            <!-- RIGHT: View + Edit -->
+            <div class="d-flex align-items-center gap-2">
+                <a href="{% url 'hospital_lead_detail' lead.id %}" class="btn btn-sm btn-outline-primary">View</a>
+                <a href="{% url 'hospital_lead_edit' lead.id %}" class="btn btn-sm btn-outline-warning">Edit</a>
+            </div>
+
+        </div>
+
+    </div>
+    {% endfor %}
+
+</div>
+
+</div>
+
+
+
+<!-- VIEW TOGGLE SCRIPT -->
+<script>
+    const tableBtn = document.getElementById("tableViewBtn");
+    const cardBtn = document.getElementById("cardViewBtn");
+    const tableView = document.getElementById("tableView");
+    const cardView = document.getElementById("cardView");
+
+    // Default: show card view first
+    cardView.style.display = "block";
+    tableView.style.display = "none";
+
+    tableBtn.onclick = () => {
+        tableView.style.display = "block";
+        cardView.style.display = "none";
+        tableBtn.classList.add("active");
+        cardBtn.classList.remove("active");
+    };
+
+    cardBtn.onclick = () => {
+        tableView.style.display = "none";
+        cardView.style.display = "block";
+        cardBtn.classList.add("active");
+        tableBtn.classList.remove("active");
+    };
+</script>
+
+
+{% endblock %}

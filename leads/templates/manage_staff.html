@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Manage Staff{% endblock %}
+
+{% block content %}
+
+<style>
+    body { background: #f4f6f9; }
+
+    .page-header {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .view-toggle-btn {
+        padding: 6px 14px;
+        font-size: 14px;
+        border-radius: 6px;
+    }
+    .view-toggle-btn.active {
+        background: #007bff !important;
+        color: white !important;
+    }
+
+    .staff-card {
+        background: white;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        display: flex;
+        gap: 15px;
+        align-items: center;
+    }
+
+    .staff-img {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #007bff;
+    }
+
+    .staff-info strong {
+        font-size: 1rem;
+        color: #0d6efd;
+    }
+
+    .action-buttons a {
+        margin-right: 6px;
+        font-size: 0.8rem;
+    }
+
+    @media (min-width: 768px) {
+        .staff-img {
+            width: 80px;
+            height: 80px;
+        }
+    }
+</style>
+
+<!-- HEADER -->
+<div class="page-header">
+    <h3 class="mb-0">Manage Staff</h3>
+</div>
+
+<!-- FILTER + TOGGLE BUTTONS ROW -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-3">
+
+    <!-- STAFF DROPDOWN SEARCH -->
+    <form method="GET" action="" class="mb-2 mb-md-0 d-flex" style="max-width:320px; width:100%;">
+        <select name="staff" class="form-select">
+            <option value="">All Staff</option>
+
+            {% for s in staff_list %}
+            <option value="{{ s.id }}" {% if selected_staff == s.id|stringformat:"s" %}selected{% endif %}>
+                {{ s.name }}
+            </option>
+            {% endfor %}
+        </select>
+
+        <button class="btn btn-primary ms-2">
+            <i class="fas fa-search"></i>
+        </button>
+    </form>
+
+    <!-- VIEW TOGGLE BUTTONS -->
+    <div>
+        <button id="cardViewBtn" class="btn btn-outline-primary view-toggle-btn active me-2">
+            <i class="fas fa-id-card me-2"></i>Card View
+        </button>
+        <button id="tableViewBtn" class="btn btn-outline-primary view-toggle-btn">
+            <i class="fas fa-table me-2"></i>Table View
+        </button>
+    </div>
+</div>
+
+<!-- ===================== CARD VIEW ===================== -->
+
+<div id="cardView">
+
+{% for s in staff %}
+<div class="staff-card">
+
+    <div>
+        {% if s.upload_photo %}
+            <img src="{{ s.upload_photo.url }}" class="staff-img">
+        {% else %}
+            <img src="https://via.placeholder.com/70" class="staff-img">
+        {% endif %}
+    </div>
+
+    <div class="staff-info">
+        <strong>{{ s.name }}</strong><br>
+        📧 {{ s.email }} <br>
+
+        <!-- CALL + WHATSAPP BUTTONS -->
+        <div class="d-flex align-items-center gap-3 mt-1">
+            <span class="fw-bold text-nowrap">{{ s.phone_number }}</span>
+
+            <a href="tel:{{ s.phone_number }}" class="text-primary" title="Call">
+                <i class="fas fa-phone fa-lg" style="font-size: 22px;"></i>
+            </a>
+
+            <a href="https://wa.me/{{ s.phone_number }}" target="_blank"
+               class="text-success" title="WhatsApp">
+                <i class="fab fa-whatsapp fa-lg" style="font-size: 22px;"></i>
+            </a>
+        </div>
+
+        🎂 {{ s.date_of_birth }}
+
+        <div class="action-buttons mt-2">
+            <a href="{% url 'view_staff' s.id %}" class="btn btn-info btn-sm text-white">
+                <i class="fas fa-eye"></i>
+            </a>
+
+            <a href="{% url 'edit_staff' s.id %}" class="btn btn-warning btn-sm text-dark">
+                <i class="fas fa-edit"></i>
+            </a>
+
+            <a href="{% url 'delete_staff' s.id %}" class="btn btn-danger btn-sm text-white"
+               onclick="return confirm('Delete {{ s.name }} ?');">
+                <i class="fas fa-trash"></i>
+            </a>
+        </div>
+    </div>
+
+</div>
+
+{% empty %}
+<p class="text-center text-muted">No staff records found.</p>
+{% endfor %}
+
+</div>
+
+<!-- ===================== TABLE VIEW ===================== -->
+
+<div id="tableView" style="display:none;">
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead class="table-primary">
+            <tr>
+                <th>Photo</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>DOB</th>
+                <th width="170">Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for s in staff %}
+            <tr>
+                <td>
+                    {% if s.upload_photo %}
+                        <img src="{{ s.upload_photo.url }}" class="staff-img">
+                    {% else %}
+                        <img src="https://via.placeholder.com/80" class="staff-img">
+                    {% endif %}
+                </td>
+
+                <td>{{ s.name }}</td>
+                <td>{{ s.email }}</td>
+
+                <td>
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="fw-bold text-nowrap">{{ s.phone_number }}</span>
+
+                        <a href="tel:{{ s.phone_number }}" class="text-primary" title="Call">
+                            <i class="fas fa-phone" style="font-size: 22px;"></i>
+                        </a>
+
+                        <a href="https://wa.me/{{ s.phone_number }}" target="_blank"
+                           class="text-success" title="WhatsApp">
+                            <i class="fab fa-whatsapp" style="font-size: 22px;"></i>
+                        </a>
+                    </div>
+                </td>
+
+                <td>{{ s.date_of_birth }}</td>
+
+                <td>
+                    <a href="{% url 'view_staff' s.id %}" class="btn btn-sm btn-info me-1">
+                        <i class="fas fa-eye"></i>
+                    </a>
+
+                    <a href="{% url 'edit_staff' s.id %}" class="btn btn-sm btn-warning me-1">
+                        <i class="fas fa-edit"></i>
+                    </a>
+
+                    <a href="{% url 'delete_staff' s.id %}" 
+                       class="btn btn-sm btn-danger"
+                       onclick="return confirm('Delete {{ s.name }} ?');">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </td>
+            </tr>
+
+        {% empty %}
+            <tr>
+                <td colspan="8" class="text-center text-muted">
+                    No Staff Records Found.
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+</div>
+
+<!-- ===================== TOGGLE SCRIPT ===================== -->
+
+<script>
+    const cardBtn = document.getElementById("cardViewBtn");
+    const tableBtn = document.getElementById("tableViewBtn");
+    const cardView = document.getElementById("cardView");
+    const tableView = document.getElementById("tableView");
+
+    cardBtn.onclick = () => {
+        cardView.style.display = "block";
+        tableView.style.display = "none";
+        cardBtn.classList.add("active");
+        tableBtn.classList.remove("active");
+    };
+
+    tableBtn.onclick = () => {
+        cardView.style.display = "none";
+        tableView.style.display = "block";
+        tableBtn.classList.add("active");
+        cardBtn.classList.remove("active");
+    };
+</script>
+
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Add Product{% endblock %}
+
+{% block content %}
+<h2>Add New Product</h2>
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="row mb-3">
+        <div class="col">
+            <label>Product ID</label>
+            <input type="text" name="product_id" class="form-control" required>
+        </div>
+        <div class="col">
+            <label>Product Name</label>
+            <input type="text" name="product_name" class="form-control" required>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col">
+            <label>Selling Price</label>
+            <input type="number" name="selling_price" class="form-control" step="0.01" required>
+        </div>
+        <div class="col">
+            <label>Tax %</label>
+            <input type="number" name="tax_percent" class="form-control" step="0.01">
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col">
+            <label>Purchase Price</label>
+            <input type="number" name="purchase_price" class="form-control" step="0.01">
+        </div>
+        <div class="col">
+            <label>Product Unit</label>
+            <select name="product_unit" class="form-select">
+                <option value="pcs">Pieces</option>
+                <option value="kg">Kilogram</option>
+                <option value="ltr">Liter</option>
+                <option value="box">Box</option>
+                <option value="nos">Numbers</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label>HSN/SAC</label>
+        <input type="text" name="hsn_sac" class="form-control">
+    </div>
+
+    <div class="mb-3">
+        <label>Category</label>
+        <select name="category_id" class="form-select">
+            {% for category in categories %}
+                <option value="{{ category.id }}">{{ category.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label>Description</label>
+        <textarea name="description" class="form-control" rows="3"></textarea>
+    </div>
+
+    <div class="mb-3">
+        <label>Product Image</label>
+        <input type="file" name="product_image" class="form-control">
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save Product</button>
+</form>
+{% endblock %}

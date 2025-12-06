@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block title %}View Expense - Expense Management{% endblock %}
+
+{% block content %}
+<style>
+  body {
+    background-color: #f8f9fe;
+  }
+  
+  .page-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border-radius: 0 0 1rem 1rem;
+  }
+  
+  .card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    padding: 2rem;
+  }
+  
+  .label {
+    font-weight: 600;
+    color: #2c3e50;
+  }
+  
+  .value {
+    margin-bottom: 1rem;
+  }
+  
+  .btn-group {
+    margin-top: 1.5rem;
+  }
+
+  /* Print Styles */
+  @media print {
+    /* Hide everything */
+    body * {
+      visibility: hidden;
+    }
+
+    /* Show only expense details section + print header/footer */
+    .print-section, 
+    .print-section * ,
+    .print-only,
+    .print-only * {
+      visibility: visible;
+    }
+
+    /* Position correctly for print */
+    .print-section {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      padding: 0 20px;
+    }
+
+    /* Hide UI elements */
+    .navbar, .sidebar, .page-header, .no-print {
+      display: none !important;
+    }
+
+    /* Print header/footer styling */
+    .print-header {
+      text-align: center;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #333;
+      padding-bottom: 10px;
+    }
+    .print-header h1 {
+      margin: 0;
+      font-size: 18pt;
+    }
+    .print-header p {
+      margin: 5px 0 0 0;
+      font-size: 11pt;
+    }
+
+    .print-footer {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid #ccc;
+      text-align: center;
+      font-size: 10pt;
+      color: #666;
+    }
+  }
+  
+  .print-only {
+    display: none;
+  }
+  
+  @media print {
+    .print-only {
+      display: block;
+    }
+  }
+</style>
+
+<div class="page-header no-print">
+  <div class="container-fluid">
+    <h1><i class="fas fa-eye me-2"></i>Expense Details</h1>
+    <p>Project: <strong>{{ expense.project.project_name }}</strong></p>
+  </div>
+</div>
+
+<div class="container-fluid print-section">
+  <!-- Print header -->
+  <div class="print-only print-header">
+    <h1>Expense Details</h1>
+    <p>Project: {{ expense.project.project_name }} | Expense ID: {{ expense.id }}</p>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-lg-6 col-md-8">
+      <div class="card">
+        <div><span class="label">Amount:</span> <span class="value">₹{{ expense.amount }}</span></div>
+        <div><span class="label">Expense Date:</span> <span class="value">{{ expense.expense_date|date:"M d, Y" }}</span></div>
+        <div><span class="label">Vendor:</span> <span class="value">{{ expense.vendor|default:"-" }}</span></div>
+        <div><span class="label">Employee Name:</span> <span class="value">{{ expense.employee_name|default:"-" }}</span></div>
+        <div><span class="label">Description:</span> <p class="value">{{ expense.description }}</p></div>
+        <div><span class="label">Notes:</span> <p class="value">{{ expense.notes|default:"-" }}</p></div>
+        <div><span class="label">Payment Type:</span> <span class="value">{{ expense.get_payment_type_display }}</span></div>
+        <div><span class="label">Status:</span> <span class="value text-capitalize">{{ expense.status }}</span></div>
+        <div><span class="label">Created At:</span> <span class="value">{{ expense.created_at|date:"M d, Y, H:i A" }}</span></div>
+
+        <div class="btn-group d-flex gap-2 no-print">
+          <button onclick="window.print()" class="btn btn-info flex-fill">
+            <i class="fas fa-print me-1"></i> Print
+          </button>
+          <a href="{% url 'edit_expense' expense.id %}" class="btn btn-warning flex-fill">
+            <i class="fas fa-edit me-1"></i> Edit
+          </a>
+          <a href="{% url 'project_detail' expense.project.id %}" class="btn btn-secondary flex-fill">
+            <i class="fas fa-arrow-left me-1"></i> Back to Project
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="print-only print-footer">
+  <p>This is a computer-generated expense report.</p>
+  <p>Project: {{ expense.project.project_name }} | Expense ID: {{ expense.id }}</p>
+</div>
+
+{% endblock %}

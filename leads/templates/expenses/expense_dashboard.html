@@ -1,0 +1,346 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Staff Expense Dashboard{% endblock %}
+
+{% block content %}
+
+<style>
+    .page-header-exp {
+        background: linear-gradient(135deg, #4361ee 0%, #4895ef 50%, #4cc9f0 100%);
+        color: #fff;
+        padding: 1.5rem 1.25rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .page-header-exp .page-title {
+        font-size: 1.5rem;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-card {
+        border-radius: 0.75rem;
+        border: none;
+        box-shadow: 0 0.25rem 0.75rem rgba(15, 23, 42, 0.08);
+    }
+
+    .stat-card-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: #6c757d;
+        margin-bottom: 0.15rem;
+    }
+
+    .stat-value {
+        font-size: 1.35rem;
+        font-weight: 600;
+    }
+
+    .filter-card {
+        border-radius: 0.75rem;
+    }
+
+    .badge-expense-type {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 999px;
+    }
+
+    .table td, .table th {
+        vertical-align: middle;
+        font-size: 0.9rem;
+    }
+
+    .amount-text {
+        font-weight: 600;
+    }
+
+    .mobile-expense-card {
+        border-radius: 0.75rem;
+        border: 1px solid #e5e7eb;
+    }
+
+    @media (max-width: 576px) {
+        .page-header-exp {
+            padding: 1.1rem 1rem;
+        }
+
+        .page-header-exp .page-title {
+            font-size: 1.25rem;
+        }
+
+        .stat-value {
+            font-size: 1.15rem;
+        }
+    }
+</style>
+
+<div class="page-header-exp mb-4">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+        <div>
+            <h1 class="page-title mb-1">
+                <i class="fas fa-wallet me-2"></i>Staff Expense Dashboard
+            </h1>
+            <p class="mb-0 small text-light">
+                Track staff expenses, filter by type / staff / date and monitor totals.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- SUMMARY CARDS -->
+<div class="row g-3 mb-4">
+    <div class="col-12 col-md-4">
+        <div class="card stat-card">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-label">Today</div>
+                    <div class="stat-value">₹ {{ total_today|floatformat:2 }}</div>
+                </div>
+                <div class="stat-card-icon bg-primary bg-opacity-10 text-primary">
+                    <i class="fas fa-calendar-day"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-4">
+        <div class="card stat-card">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-label">This Month</div>
+                    <div class="stat-value">₹ {{ total_this_month|floatformat:2 }}</div>
+                </div>
+                <div class="stat-card-icon bg-success bg-opacity-10 text-success">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-4">
+        <div class="card stat-card">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-label">All Time</div>
+                    <div class="stat-value">₹ {{ total_all_time|floatformat:2 }}</div>
+                </div>
+                <div class="stat-card-icon bg-warning bg-opacity-10 text-warning">
+                    <i class="fas fa-infinity"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- FILTERS -->
+<div class="card filter-card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            <i class="fas fa-filter me-2"></i>Filters
+        </h5>
+        <button class="btn btn-sm btn-outline-secondary d-md-none" type="button"
+                data-bs-toggle="collapse" data-bs-target="#filterBody" aria-expanded="false">
+            Show / Hide
+        </button>
+    </div>
+    <div class="collapse show" id="filterBody">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+
+                <!-- Staff Filter -->
+                <div class="col-12 col-md-3">
+                    <label class="form-label">Staff</label>
+                    <select name="staff" class="form-select">
+                        <option value="">All Staff</option>
+                        {% for staff in staff_members %}
+                            <option value="{{ staff.id }}"
+                                    {% if selected_staff|default:''|stringformat:"s" == staff.id|stringformat:"s" %}selected{% endif %}>
+                                {{ staff.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Expense Type Filter -->
+                <div class="col-12 col-md-3">
+                    <label class="form-label">Expense Type</label>
+                    <select name="type" class="form-select">
+                        <option value="">All Types</option>
+                        {% for key, label in expense_types %}
+                            <option value="{{ key }}"
+                                    {% if selected_expense_type == key %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Date Range -->
+                <div class="col-6 col-md-2">
+                    <label class="form-label">Start Date</label>
+                    <input type="date" name="start_date" class="form-control"
+                           value="{{ start_date }}">
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label">End Date</label>
+                    <input type="date" name="end_date" class="form-control"
+                           value="{{ end_date }}">
+                </div>
+
+                <!-- Buttons -->
+                <div class="col-12 col-md-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search me-1"></i>Apply
+                    </button>
+                    <a href="{% url 'expense_dashboard' %}" class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-times me-1"></i>Clear
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- EXPENSE LIST -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            <i class="fas fa-receipt me-2"></i>Expenses
+        </h5>
+        <a href="{% url 'add_staff_expense' %}" class="btn btn-sm btn-success">
+            <i class="fas fa-plus me-1"></i>Add Expense
+        </a>
+    </div>
+
+    <div class="card-body p-0">
+
+        {% if expenses %}
+            <!-- Desktop / Tablet Table -->
+            <div class="table-responsive d-none d-sm-block">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Date & Time</th>
+                            <th>Staff</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                            <th>Bill</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for exp in expenses %}
+                        <tr>
+                            <td>
+                                {{ exp.created_at|date:"M d, Y" }}<br>
+                                <small class="text-muted">{{ exp.created_at|date:"H:i" }}</small>
+                            </td>
+                            <td>
+                                <strong>{{ exp.staff.name }}</strong><br>
+                                <small class="text-muted">{{ exp.staff.email }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-info bg-opacity-25 text-info badge-expense-type">
+                                    {{ exp.get_expense_type_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if exp.description %}
+                                    {{ exp.description|truncatechars:80 }}
+                                {% else %}
+                                    <span class="text-muted">No description</span>
+                                {% endif %}
+                                {% if exp.remark %}
+                                    <br><small class="text-muted">Remark: {{ exp.remark|truncatechars:60 }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="amount-text">₹ {{ exp.amount|floatformat:2 }}</span>
+                            </td>
+                            <td>
+                                {% if exp.bill_image %}
+                                    <a href="{{ exp.bill_image.url }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                        <i class="fas fa-file-image me-1"></i>View
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted">No bill</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Mobile Card View -->
+            <div class="d-block d-sm-none p-2">
+                {% for exp in expenses %}
+                    <div class="mobile-expense-card p-3 mb-2">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <div>
+                                <strong>{{ exp.staff.name }}</strong><br>
+                                <small class="text-muted">{{ exp.created_at|date:"M d, Y H:i" }}</small>
+                            </div>
+                            <span class="badge bg-info bg-opacity-25 text-info badge-expense-type">
+                                {{ exp.get_expense_type_display }}
+                            </span>
+                        </div>
+                        <div class="mt-1">
+                            <div class="mb-1">
+                                <span class="text-muted small">Amount:</span>
+                                <span class="amount-text">₹ {{ exp.amount|floatformat:2 }}</span>
+                            </div>
+                            <div class="mb-1">
+                                <span class="text-muted small">Description:</span><br>
+                                {% if exp.description %}
+                                    <span>{{ exp.description|truncatechars:80 }}</span>
+                                {% else %}
+                                    <span class="text-muted">No description</span>
+                                {% endif %}
+                            </div>
+                            {% if exp.remark %}
+                            <div class="mb-1">
+                                <span class="text-muted small">Remark:</span><br>
+                                <span>{{ exp.remark|truncatechars:80 }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="mt-2">
+                            {% if exp.bill_image %}
+                                <a href="{{ exp.bill_image.url }}" target="_blank" class="btn btn-sm btn-outline-secondary w-100">
+                                    <i class="fas fa-file-image me-1"></i>View Bill
+                                </a>
+                            {% else %}
+                                <span class="text-muted small">No bill uploaded</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+        {% else %}
+            <div class="p-4 text-center text-muted">
+                <i class="fas fa-info-circle fa-2x mb-2"></i>
+                <p class="mb-1">No expenses found for the selected filters.</p>
+                <a href="{% url 'add_staff_expense' %}" class="btn btn-sm btn-success mt-2">
+                    <i class="fas fa-plus me-1"></i>Add First Expense
+                </a>
+            </div>
+        {% endif %}
+
+    </div>
+</div>
+
+{% endblock %}

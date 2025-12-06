@@ -1,0 +1,534 @@
+{% extends "base.html" %}
+
+{% block title %}Vendor Details - LeadMaster Pro{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-2 px-md-4 py-3">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center">
+            <a href="{% url 'vendor_list' %}" class="btn btn-outline-secondary me-2 me-md-3 btn-mobile">
+                <i class="fas fa-arrow-left"></i>
+                <span class="d-none d-md-inline ms-1">Back</span>
+            </a>
+            <h4 class="mb-0 fw-bold text-truncate">{{ vendor.vendor_name }}</h4>
+        </div>
+        <div class="d-flex">
+            <a href="{% url 'edit_vendor' vendor.id %}" class="btn btn-warning me-2 btn-mobile">
+                <i class="fas fa-edit"></i>
+                <span class="d-none d-md-inline ms-1">Edit</span>
+            </a>
+            <button class="btn btn-outline-danger btn-mobile" onclick="confirmDelete('{{ vendor.id }}', '{{ vendor.vendor_name }}')">
+                <i class="fas fa-trash"></i>
+                <span class="d-none d-md-inline ms-1">Delete</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Vendor Info -->
+    <div class="row g-2 g-md-3">
+        <div class="col-12 col-lg-6">
+            <div class="card h-100">
+                <div class="card-header bg-light fw-bold">
+                    <i class="fas fa-truck me-2"></i>Basic Info
+                </div>
+                <div class="card-body">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <strong>Name:</strong> {{ vendor.vendor_name }}
+                        </div>
+                        <div class="info-item">
+                            <strong>Phone:</strong> 
+                            <div>
+                                {{ vendor.phone_number }}
+                                {% if vendor.phone_number_2 %}
+                                    <br><span class="text-muted">{{ vendor.phone_number_2 }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <strong>Email:</strong> {{ vendor.email|default:"N/A" }}
+                        </div>
+                        <div class="info-item">
+                            <strong>Company:</strong> {{ vendor.company_name|default:"Individual" }}
+                        </div>
+                        <div class="info-item">
+                            <strong>GSTIN:</strong> {{ vendor.gstin|default:"N/A" }}
+                        </div>
+                        <div class="info-item">
+                            <strong>Vendor ID:</strong> <span class="badge bg-warning text-dark">{{ vendor.vendor_id }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-6">
+            <div class="card h-100">
+                <div class="card-header bg-light fw-bold">
+                    <i class="fas fa-map-marker-alt me-2"></i>Address
+                </div>
+                <div class="card-body">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <strong>Address Line 1:</strong> {{ vendor.address_line_1|default:"-" }}
+                        </div>
+                        <div class="info-item">
+                            <strong>Address Line 2:</strong> {{ vendor.address_line_2|default:"-" }}
+                        </div>
+                        <div class="info-item">
+                            <strong>City:</strong> {{ vendor.city|default:"-" }}
+                        </div>
+                        <div class="info-item">
+                            <strong>State:</strong> {{ vendor.state|default:"-" }}
+                        </div>
+                        <div class="info-item">
+                            <strong>Pincode:</strong> {{ vendor.pincode|default:"-" }}
+                        </div>
+                        <div class="info-item">
+                            <strong>Website:</strong>
+                            {% if vendor.company_website %}
+                                <a href="{{ vendor.company_website }}" target="_blank" class="text-decoration-none">
+                                    {{ vendor.company_website|truncatechars:30 }}
+                                    <i class="fas fa-external-link-alt ms-1 small"></i>
+                                </a>
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </div>
+                        <div class="info-item">
+                            <strong>Created:</strong> {{ vendor.created_at|date:"M d, Y H:i" }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Employees -->
+    <div class="card my-3 my-md-4">
+        <div class="card-header d-flex justify-content-between align-items-center bg-light fw-bold">
+            <span><i class="fas fa-users me-2"></i>Employees</span>
+            <a href="{% url 'add_vendor_employee' vendor.id %}" class="btn btn-sm btn-primary rounded-pill btn-mobile">
+                <i class="fas fa-plus"></i>
+                <span class="d-none d-sm-inline ms-1">Add Employee</span>
+            </a>
+        </div>
+        <div class="card-body">
+            {% if employees %}
+                <div class="row g-2 g-md-3">
+                    {% for employee in employees %}
+                    <div class="col-12 col-md-6 col-xl-4">
+                        <div class="employee-card">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div class="employee-info flex-grow-1">
+                                    <h6 class="mb-1 fw-bold text-primary">{{ employee.name }}</h6>
+                                    <div class="employee-details">
+                                        <div class="detail-row">
+                                            <i class="fas fa-briefcase me-2 text-muted"></i>
+                                            <span class="fw-medium">{{ employee.position }}</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <i class="fas fa-phone me-2 text-muted"></i>
+                                            <span>{{ employee.phone_number }}</span>
+                                        </div>
+                                        {% if employee.email %}
+                                        <div class="detail-row">
+                                            <i class="fas fa-envelope me-2 text-muted"></i>
+                                            <span class="text-truncate">{{ employee.email }}</span>
+                                        </div>
+                                        {% endif %}
+                                        {% if employee.date_of_birth %}
+                                        <div class="detail-row">
+                                            <i class="fas fa-birthday-cake me-2 text-muted"></i>
+                                            <span>{{ employee.date_of_birth|date:"d-M-Y" }}</span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="employee-actions">
+                                    <a href="{% url 'edit_vendor_employee' employee.id %}" class="btn btn-sm btn-outline-primary action-btn" title="Edit Employee">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form method="post" action="{% url 'delete_vendor_employee' employee.id %}" style="display:inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger action-btn" title="Delete Employee"
+                                            onclick="return confirm('Are you sure you want to delete employee: {{ employee.name }}?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="employee-contact-buttons">
+                                <button class="btn btn-sm contact-btn call-btn" onclick="callEmployee('{{ employee.phone_number }}')">
+                                    <i class="fas fa-phone fa-sm"></i>
+                                </button>
+                                <button class="btn btn-sm contact-btn whatsapp-btn" onclick="whatsappEmployee('{{ employee.phone_number }}')">
+                                    <i class="fab fa-whatsapp fa-sm"></i>
+                                </button>
+                                {% if employee.email %}
+                                <button class="btn btn-sm contact-btn email-btn" onclick="emailEmployee('{{ employee.email }}')">
+                                    <i class="fas fa-envelope fa-sm"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                    <p class="text-muted mb-3">No employees added yet</p>
+                    <a href="{% url 'add_vendor_employee' vendor.id %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Add First Employee
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Products Supplied -->
+    <div class="card my-3 my-md-4">
+        <div class="card-header d-flex justify-content-between align-items-center bg-light fw-bold">
+            <span><i class="fas fa-boxes me-2"></i>Products Supplied</span>
+            <a href="{% url 'add_vendor_product' vendor.id %}" class="btn btn-sm btn-primary rounded-pill btn-mobile">
+                <i class="fas fa-plus"></i>
+                <span class="d-none d-sm-inline ms-1">Add Product</span>
+            </a>
+        </div>
+        <div class="card-body">
+            {% if vendor_products %}
+                <div class="row g-2 g-md-3">
+                    {% for product in vendor_products %}
+                    <div class="col-12 col-md-6 col-xl-4">
+                        <div class="product-card">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div class="product-info flex-grow-1">
+                                    {% if product.product_image %}
+                                        <img src="{{ product.product_image.url }}" alt="{{ product.product_name }}" class="product-image mb-2">
+                                    {% endif %}
+                                    <h6 class="mb-1 fw-bold text-primary">{{ product.product_name }}</h6>
+                                    <div class="product-details">
+                                        <div class="detail-row">
+                                            <i class="fas fa-tag me-2 text-muted"></i>
+                                            <span class="fw-medium">{{ product.product_id }}</span>
+                                        </div>
+                                        {% if product.purchase_price %}
+                                        <div class="detail-row">
+                                            <i class="fas fa-rupee-sign me-2 text-muted"></i>
+                                            <span>₹{{ product.purchase_price }}</span>
+                                        </div>
+                                        {% endif %}
+                                        {% if product.selling_price %}
+                                        <div class="detail-row">
+                                            <i class="fas fa-tags me-2 text-muted"></i>
+                                            <span>Selling: ₹{{ product.selling_price }}</span>
+                                        </div>
+                                        {% endif %}
+                                        {% if product.installation_date %}
+                                        <div class="detail-row">
+                                            <i class="fas fa-calendar-alt me-2 text-muted"></i>
+                                            <span>{{ product.installation_date|date:"d-M-Y" }}</span>
+                                        </div>
+                                        {% endif %}
+                                        {% if product.warranty_period_date %}
+                                        <div class="detail-row">
+                                            <i class="fas fa-calendar-check me-2 text-muted"></i>
+                                            <span>{{ product.warranty_period_date|date:"d-M-Y" }}</span>
+                                        </div>
+                                        {% endif %}
+                                        {% if product.category %}
+                                        <div class="detail-row">
+                                            <i class="fas fa-folder me-2 text-muted"></i>
+                                            <span>{{ product.category.name }}</span>
+                                        </div>
+                                        {% endif %}
+                                        {% if product.product_unit %}
+                                        <div class="detail-row">
+                                            <i class="fas fa-weight me-2 text-muted"></i>
+                                            <span>{{ product.get_product_unit_display }}</span>
+                                        </div>
+                                        {% endif %}
+                                        {% if product.manufacturer %}
+                                        <div class="detail-row">
+                                            <i class="fas fa-industry me-2 text-muted"></i>
+                                            <span>{{ product.manufacturer }}</span>
+                                        </div>
+                                        {% endif %}
+                                        {% if product.serial_number %}
+                                        <div class="detail-row">
+                                            <i class="fas fa-barcode me-2 text-muted"></i>
+                                            <span>S/N: {{ product.serial_number }}</span>
+                                        </div>
+                                        {% endif %}
+                                        {% if product.hsn_sac %}
+                                        <div class="detail-row">
+                                            <i class="fas fa-code me-2 text-muted"></i>
+                                            <span>HSN: {{ product.hsn_sac }}</span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="product-actions">
+                                    <button class="btn btn-sm btn-outline-warning me-1" onclick="editProduct('{{ product.id }}')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteProduct('{{ product.id }}', '{{ product.product_name }}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            {% if product.description %}
+                            <div class="product-description">
+                                <small class="text-muted">{{ product.description|truncatechars:100 }}</small>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                    <p class="text-muted mb-3">No products added yet</p>
+                    <a href="{% url 'add_vendor_product' vendor.id %}" class="btn btn-warning">
+                        <i class="fas fa-plus me-2"></i>Add First Product
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Back Button -->
+    <div class="text-center d-md-none mb-3">
+        <a href="{% url 'vendor_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to List
+        </a>
+    </div>
+</div>
+
+<!-- Confirm Delete Script -->
+<script>
+    function confirmDelete(vendorId, vendorName) {
+        if (confirm(`Are you sure you want to delete vendor: ${vendorName}?`)) {
+            window.location.href = `/vendors/delete/${vendorId}/`;
+        }
+    }
+
+    function editProduct(productId) {
+        window.location.href = `/vendors/product/edit/${productId}/`;
+    }
+
+    function deleteProduct(productId, productName) {
+        if (confirm(`Are you sure you want to delete product: ${productName}?`)) {
+            window.location.href = `/vendors/product/delete/${productId}/`;
+        }
+    }
+
+    function callEmployee(phoneNumber) {
+        window.open(`tel:${phoneNumber}`, '_self');
+    }
+
+    function whatsappEmployee(phoneNumber) {
+        window.open(`https://wa.me/${phoneNumber}`, '_blank');
+    }
+
+    function emailEmployee(email) {
+        window.open(`mailto:${email}`, '_self');
+    }
+</script>
+
+<style>
+/* Mobile-first responsive styles */
+.btn-mobile {
+    padding: 8px 12px;
+    border-radius: 8px;
+}
+
+.info-grid {
+    display: grid;
+    gap: 12px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.info-item strong {
+    color: #495057;
+    font-size: 0.9rem;
+}
+
+.employee-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 1px solid #dee2e6;
+    border-radius: 12px;
+    padding: 16px;
+    transition: all 0.3s ease;
+    height: 100%;
+    position: relative;
+}
+
+.employee-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.employee-details {
+    display: grid;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.detail-row {
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.detail-row i {
+    width: 16px;
+    font-size: 0.8rem;
+}
+
+.employee-actions {
+    display: flex;
+    flex-shrink: 0;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    gap: 4px;
+}
+
+.employee-contact-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #dee2e6;
+}
+
+.contact-btn {
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.call-btn {
+    background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.whatsapp-btn {
+    background: #25D366;
+    color: white;
+}
+
+.email-btn {
+    background: #dc3545;
+    color: white;
+}
+
+.contact-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.product-card {
+    background: linear-gradient(135deg, #fff8e1 0%, #ffeaa7 100%);
+    border: 1px solid #f8f8f8;
+    border-radius: 12px;
+    padding: 16px;
+    transition: all 0.3s ease;
+    height: 100%;
+    position: relative;
+}
+
+.product-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(227, 224, 220, 0.2);
+}
+
+.product-image {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid #f39c12;
+}
+
+.product-details {
+    display: grid;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.product-actions {
+    display: flex;
+    flex-shrink: 0;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    gap: 4px;
+}
+
+.product-description {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #f39c12;
+}
+
+/* Tablet and desktop styles */
+@media (min-width: 768px) {
+    .btn-mobile {
+        padding: 10px 16px;
+    }
+    
+    .info-item {
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .info-item strong {
+        min-width: 120px;
+        flex-shrink: 0;
+    }
+    
+    .employee-card, .product-card {
+        padding: 20px;
+    }
+    
+    .detail-row {
+        font-size: 0.95rem;
+    }
+}
+
+@media (min-width: 992px) {
+    .employee-details, .product-details {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px 16px;
+    }
+}
+
+/* Print styles */
+@media print {
+    .btn, .employee-actions, .employee-contact-buttons, .product-actions {
+        display: none !important;
+    }
+    
+    .card {
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+    }
+}
+</style>
+
+{% endblock %}
