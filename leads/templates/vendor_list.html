@@ -1,11 +1,35 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Vendors - LeadMaster Pro{% endblock %}
 
 {% block content %}
 
+<style>
+.view-toggle-btn.active {
+    background-color: #ffc107 !important;
+    color: black !important;
+    border-color: #e0a800 !important;
+}
+.view-toggle-btn { padding: 6px 12px; }
 
-
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #ffc107, #ff8800);
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-weight:bold; font-size:16px;
+}
+.vendor-id-badge {
+    background:#007bff;
+    color:white;
+    padding:4px 8px;
+    border-radius:6px;
+    font-size:12px;
+}
+.vendor-card:hover { background:#f8f9fa; cursor:pointer; }
+</style>
 
 <!-- PAGE HEADER -->
 <div class="page-header">
@@ -15,26 +39,18 @@
                 <i class="fas fa-truck me-2"></i>Vendors
                 <span class="badge bg-warning text-dark ms-2">{{ total_vendors }}</span>
             </h1>
-            <nav aria-label="breadcrumb" class="d-none d-md-block">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}"><i class="fas fa-home"></i></a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Vendors</li>
-                </ol>
-            </nav>
         </div>
+
         <div>
             <a href="{% url 'add_vendor' %}" class="btn btn-warning">
-                <i class="fas fa-plus me-2 d-none d-sm-inline"></i>
-                <span class="d-none d-sm-inline">Add Vendor</span>
-                <i class="fas fa-plus d-sm-none"></i>
+                <i class="fas fa-plus me-2"></i>Add Vendor
             </a>
         </div>
     </div>
 </div>
 
 
-
-<!-- MOBILE FILTER DROPDOWN BUTTON -->
+<!-- MOBILE FILTER BUTTON -->
 <div class="d-md-none mb-3">
     <button class="btn btn-warning w-100 d-flex justify-content-between align-items-center"
             data-bs-toggle="collapse" data-bs-target="#filtersDropdown">
@@ -43,33 +59,20 @@
     </button>
 </div>
 
-<!-- FILTERS CARD (Desktop = Always Visible, Mobile = Collapsible) -->
+
+<!-- FILTER AREA -->
 <div class="card mb-4">
     <div class="card-body collapse d-md-block" id="filtersDropdown">
 
         <form method="get" class="row g-3 align-items-end">
 
-            <div class="col-6 col-md-3">
-                <label class="form-label">Search Vendors</label>
-                <select class="form-select" name="search">
-                    <option value="">All Vendors</option>
-
-                    {% for v in vendors_all %}
-                        <option value="{{ v.vendor_name }}" 
-                            {% if search_query == v.vendor_name %}selected{% endif %}>
-                            {{ v.vendor_id }} - {{ v.vendor_name }} - {{ v.company_name }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-
             <!-- STATE -->
             <div class="col-6 col-md-3">
                 <label class="form-label">State</label>
-                <select class="form-select" name="state">
-                    <option value="">All</option>
+                <select class="form-select" name="state" id="stateDropdown">
+                    <option value="">All States</option>
                     {% for s in states %}
-                        <option value="{{ s }}" {% if s == state_filter %}selected{% endif %}>
+                        <option value="{{ s }}" {% if selected_state == s %}selected{% endif %}>
                             {{ s }}
                         </option>
                     {% endfor %}
@@ -79,30 +82,47 @@
             <!-- CITY -->
             <div class="col-6 col-md-3">
                 <label class="form-label">City</label>
-                <select class="form-select" name="city">
-                    <option value="">All</option>
+                <select class="form-select" name="city" id="cityDropdown">
+                    <option value="">All Cities</option>
                     {% for c in cities %}
-                        <option value="{{ c }}" {% if c == city_filter %}selected{% endif %}>
+                        <option value="{{ c }}" {% if selected_city == c %}selected{% endif %}>
                             {{ c }}
                         </option>
                     {% endfor %}
                 </select>
             </div>
 
-            <!-- FILTER BUTTON -->
-            <div class="col-12 col-md-2">
-                <label class="form-label">&nbsp;</label>
-                <div class="d-grid">
-                    <button class="btn btn-outline-warning">
-                        <i class="fas fa-filter me-1"></i> Filter
-                    </button>
-                </div>
+            <!-- VENDOR -->
+            <div class="col-6 col-md-3">
+                <label class="form-label">Vendor</label>
+                <select class="form-select" name="vendor" id="vendorDropdown">
+                    <option value="">All Vendors</option>
+                    {% for v in vendors_all %}
+                        <option value="{{ v.id }}" {% if selected_vendor == v.id|stringformat:"s" %}selected{% endif %}>
+                           {{ v.vendor_id }} - {{ v.vendor_name }} - {{ v.company_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+
+            <!-- BUTTONS -->
+            <div class="col-md-12 d-flex gap-2 mt-2">
+                <button class="btn btn-warning">
+                    <i class="fas fa-search me-1"></i>Search
+                </button>
+
+                <a href="{% url 'vendor_list' %}" class="btn btn-outline-danger">
+                    <i class="fas fa-times me-1"></i>Clear Filters
+                </a>
             </div>
 
         </form>
 
     </div>
 </div>
+
+
 
 <!-- VIEW TOGGLE BUTTONS -->
 <div class="card mb-3">
@@ -118,7 +138,8 @@
     </div>
 </div>
 
-<!-- VENDORS LIST -->
+
+<!-- MAIN LIST -->
 <div class="card">
     <div class="card-header">
         <h5 class="card-title mb-0">Vendor List</h5>
@@ -129,7 +150,7 @@
         {% if vendors %}
 
         <!-- TABLE VIEW -->
-        <div class="table-responsive" id="tableView">
+        <div class="table-responsive" id="tableView" style="display:none;">
             <table class="table table-hover mb-0">
                 <thead class="bg-light">
                 <tr>
@@ -162,18 +183,12 @@
 
                     <td>
                         <div class="d-flex align-items-center gap-2">
-                            <i class="fas fa-phone text-primary"></i>
                             <span class="fw-bold">{{ v.phone_number }}</span>
-
-                            <!-- CALL -->
-                            <a href="tel:{{ v.phone_number }}" class="text-primary contact-icon" title="Call">
-                                <i class="fas fa-phone fa-lg" style="font-size: 26px;"></i>
+                            <a href="tel:{{ v.phone_number }}" class="text-primary">
+                                <i class="fas fa-phone fa-lg"></i>
                             </a>
-
-                            <!-- WHATSAPP -->
-                            <a href="https://wa.me/{{ v.phone_number }}" target="_blank" 
-                            class="text-success contact-icon" title="WhatsApp">
-                                <i class="fab fa-whatsapp fa-lg" style="font-size: 26px;"></i>
+                            <a href="https://wa.me/{{ v.phone_number }}" target="_blank" class="text-success">
+                                <i class="fab fa-whatsapp fa-lg"></i>
                             </a>
                         </div>
                     </td>
@@ -199,69 +214,56 @@
                 </tr>
                 {% endfor %}
                 </tbody>
+
             </table>
         </div>
-        
-        <!-- CARD VIEW (Visible on Desktop + Mobile) -->
-<div id="cardView" style="display:none;">
-    {% for v in vendors %}
-    <div class="vendor-card border-bottom">
-        <div class="p-3 d-flex justify-content-between align-items-center" 
-             data-bs-toggle="collapse"  
-             style="cursor:pointer;">
-            
-            <div class="d-flex align-items-center">
-                <div class="avatar-circle me-3">{{ v.vendor_name|first|upper }}</div>
-                <div>
-                    <h6 class="mb-0">{{ v.vendor_name }}</h6>
-                    <small class="text-muted">{{ v.company_name|default:"Individual" }}</small>
-                </div>
-            </div>
-        </div>
 
-        <div>
-            <div class="p-3 pt-0">
-                <div><strong>ID:</strong> {{ v.vendor_id }}</div>
-                <div><strong>Email:</strong> {{ v.email|default:"N/A" }}</div>
-                <div class="mt-1">
-                    <strong>Phone:</strong>
-                        <span class="fw-bold">{{ v.phone_number }}</span>
+
+        <!-- CARD VIEW -->
+        <div id="cardView" style="display:block;">
+            {% for v in vendors %}
+            <div class="vendor-card border-bottom">
+                <div class="p-3 d-flex justify-content-between align-items-center">
+
+                    <div class="d-flex align-items-center">
+                        <div class="avatar-circle me-3">{{ v.vendor_name|first|upper }}</div>
+                        <div>
+                            <h6 class="mb-0">{{ v.vendor_name }}</h6>
+                            <small class="text-muted">{{ v.company_name|default:"Individual" }}</small>
+                        </div>
+                    </div>
                 </div>
 
-                <div><strong>Location:</strong> {{ v.city }}, {{ v.state }}</div>
-                <div class="d-flex align-items-center gap-3 mt-1">
+                <div class="p-3 pt-0">
+                    <div><strong>ID:</strong> {{ v.vendor_id }}</div>
+                    <div><strong>Email:</strong> {{ v.email|default:"N/A" }}</div>
+                    <div class="mt-1"><strong>Phone:</strong> {{ v.phone_number }}</div>
+                    <div><strong>Location:</strong> {{ v.city }}, {{ v.state }}</div>
 
-                        <!-- CALL -->
-                        <a href="tel:{{ v.phone_number }}" class="text-primary contact-icon" title="Call">
-                            <i style="font-size: 26px;" class="fas fa-phone fa-lg"></i>
-                        </a>
-
-                        <!-- WHATSAPP -->
-                        <a href="https://wa.me/{{ v.phone_number }}" target="_blank" 
-                        class="text-success contact-icon" title="WhatsApp">
-                            <i style="font-size: 26px;" class="fab fa-whatsapp fa-lg"></i>
+                    <div class="d-flex gap-3 mt-2">
+                        <a href="tel:{{ v.phone_number }}" class="text-primary"><i class="fas fa-phone fa-lg"></i></a>
+                        <a href="https://wa.me/{{ v.phone_number }}" target="_blank" class="text-success">
+                            <i class="fab fa-whatsapp fa-lg"></i>
                         </a>
                     </div>
-                <div class="d-flex gap-2 mt-3">
-                    <a href="{% url 'vendor_detail' v.id %}" class="btn btn-warning btn-sm flex-fill">
-                        <i class="fas fa-eye"></i> View
-                    </a>
-                    <a href="{% url 'edit_vendor' v.id %}" class="btn btn-outline-warning btn-sm">
-                        <i class="fas fa-edit"></i>
-                    </a>
-                    <button class="btn btn-outline-danger btn-sm"
-                            onclick="confirmDelete('{{ v.id }}','{{ v.vendor_name }}')">
-                        <i class="fas fa-trash"></i>
-                    </button>
+
+                    <div class="d-flex gap-2 mt-3">
+                        <a href="{% url 'vendor_detail' v.id %}" class="btn btn-warning btn-sm flex-fill">
+                            <i class="fas fa-eye"></i> View
+                        </a>
+                        <a href="{% url 'edit_vendor' v.id %}" class="btn btn-outline-warning btn-sm">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <button class="btn btn-outline-danger btn-sm"
+                                onclick="confirmDelete('{{ v.id }}','{{ v.vendor_name }}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
                 </div>
 
             </div>
+            {% endfor %}
         </div>
-
-    </div>
-    {% endfor %}
-</div>
-
 
         {% else %}
         <div class="p-4 text-center text-muted">
@@ -272,66 +274,75 @@
     </div>
 </div>
 
-<!-- STYLING -->
-<style>
-.view-toggle-btn.active {
-    background-color: #ffc107 !important;
-    color: black !important;
-    border-color: #e0a800 !important;
-}
-.view-toggle-btn { padding: 6px 12px; }
 
-.avatar-circle {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: linear-gradient(45deg, #ffc107, #ff8800);
-    display:flex; align-items:center; justify-content:center;
-    color:#fff; font-weight:bold; font-size:16px;
-}
-.vendor-id-badge {
-    background:#007bff;
-    color:white;
-    padding:4px 8px;
-    border-radius:6px;
-    font-size:12px;
-}
-.vendor-card:hover { background:#f8f9fa; }
-</style>
-
-<!-- SCRIPT -->
+<!-- TOGGLE SCRIPT -->
 <script>
-function confirmDelete(id,name){
-    if(confirm("Delete vendor: "+name+"?")) {
-        window.location.href = `/vendors/delete/${id}/`;
+const tableBtn = document.getElementById("tableViewBtn");
+const cardBtn = document.getElementById("cardViewBtn");
+const tableView = document.getElementById("tableView");
+const cardView = document.getElementById("cardView");
+
+tableBtn.onclick = () => {
+    tableView.style.display = "block";
+    cardView.style.display = "none";
+    tableBtn.classList.add("active");
+    cardBtn.classList.remove("active");
+};
+
+cardBtn.onclick = () => {
+    cardView.style.display = "block";
+    tableView.style.display = "none";
+    cardBtn.classList.add("active");
+    tableBtn.classList.remove("active");
+};
+</script>
+
+
+<!-- DEPENDENT FILTERS: STATE → CITY → VENDOR -->
+<script>
+document.getElementById("stateDropdown").addEventListener("change", function () {
+    let state = this.value;
+
+    cityDropdown.innerHTML = '<option value="">All Cities</option>';
+    vendorDropdown.innerHTML = '<option value="">All Vendors</option>';
+
+    if (state) {
+        fetch(`/ajax/vendor-cities/?state=${state}`)
+        .then(res => res.json())
+        .then(data => {
+            data.cities.forEach(city => {
+                cityDropdown.innerHTML += `<option value="${city}">${city}</option>`;
+            });
+        });
+    }
+});
+
+document.getElementById("cityDropdown").addEventListener("change", function () {
+    let city = this.value;
+
+    vendorDropdown.innerHTML = '<option value="">All Vendors</option>';
+
+    if (city) {
+        fetch(`/ajax/vendors-by-city/?city=${city}`)
+        .then(res => res.json())
+        .then(data => {
+            data.vendors.forEach(v => {
+                vendorDropdown.innerHTML += 
+                    `<option value="${v.id}">${v.vendor_name} - ${v.company_name}</option>`;
+            });
+        });
+    }
+});
+</script>
+
+
+<!-- DELETE CONFIRM -->
+<script>
+function confirmDelete(id, name){
+    if(confirm("Delete Vendor: " + name + " ?")){
+        window.location.href = "/vendors/delete/" + id + "/";
     }
 }
-
-// Toggle Views
-document.addEventListener("DOMContentLoaded", () => {
-    const tableBtn = document.getElementById("tableViewBtn");
-    const cardBtn = document.getElementById("cardViewBtn");
-    const tableView = document.getElementById("tableView");
-    const cardView = document.getElementById("cardView");
-
-    // Default: card view
-    tableView.style.display = "none";
-    cardView.style.display = "block";
-
-    tableBtn.onclick = () => {
-        tableView.style.display = "block";
-        cardView.style.display = "none";
-        tableBtn.classList.add("active");
-        cardBtn.classList.remove("active");
-    };
-
-    cardBtn.onclick = () => {
-        tableView.style.display = "none";
-        cardView.style.display = "block";
-        cardBtn.classList.add("active");
-        tableBtn.classList.remove("active");
-    };
-});
 </script>
 
 {% endblock %}

@@ -7,7 +7,6 @@
     .dropdown-wrapper {
         position: relative;
     }
-
     .dropdown-wrapper .toggle-icon {
         position: absolute;
         right: 12px;
@@ -21,10 +20,20 @@
         background-color: #0d6efd !important;
         color: white !important;
     }
-
     .view-toggle-btn {
         font-size: 13px;
         padding: 6px 12px;
+    }
+
+    .lead-card {
+        border: 1px solid #e5e5e5;
+        border-radius: 12px;
+        padding: 16px;
+        background: #fff;
+        transition: 0.2s ease;
+    }
+    .lead-card:hover {
+        box-shadow: 0 4px 10px rgba(0,0,0,0.08);
     }
 </style>
 
@@ -33,14 +42,20 @@
     <div class="card-header bg-primary text-white">
         <div class="d-flex justify-content-between align-items-center">
             <div>
-                <h3 class="mb-0"><i class="fas fa-hospital me-2"></i>Hospital/Clinic Leads</h3>
-                <span class="badge bg-light text-dark mt-1">Total Leads: {{ total_leads }}</span>
-
+                <h3 class="mb-0">
+                    <i class="fas fa-hospital me-2"></i>Hospital/Clinic Leads
+                </h3>
+                <span class="badge bg-light text-dark mt-1">
+                    Total Leads: {{ total_leads }}
+                </span>
             </div>
 
             <!-- Desktop Buttons -->
             <div class="d-flex gap-2 d-none d-md-flex">
-                <button type="button" class="btn btn-light btn-sm" data-bs-toggle="collapse" data-bs-target="#searchSection">
+                <button type="button"
+                        class="btn btn-light btn-sm"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#searchSection">
                     Filter <i class="fas fa-filter ms-1"></i>
                 </button>
 
@@ -53,7 +68,9 @@
 
     <!-- MOBILE FILTER BUTTON -->
     <div class="d-md-none p-3">
-        <button class="btn btn-primary w-100" data-bs-toggle="collapse" data-bs-target="#searchSection">
+        <button class="btn btn-primary w-100"
+                data-bs-toggle="collapse"
+                data-bs-target="#searchSection">
             Filters <i class="fas fa-filter ms-1"></i>
         </button>
     </div>
@@ -62,34 +79,17 @@
     <div class="collapse" id="searchSection">
         <div class="card-body bg-light border-bottom">
             <form method="get" class="row g-3 align-items-center">
-
-                <!-- Hospital Filter -->
+                <!-- State Filter -->
                 <div class="col-md-3">
                     <div class="dropdown-wrapper">
-                        <select name="hospital" class="form-control">
-                            <option value="">Hospital</option>
-                            {% for hospital in hospitals %}
-                            <option value="{{ hospital.id }}"
-                                {% if request.GET.hospital == hospital.id|stringformat:"s" %}selected{% endif %}>
-                                {{ hospital.hospital_name }} - {{ hospital.city }}
+                        <select name="state" id="stateDropdown" class="form-control">
+                            <option value="">State</option>
+                            {% for state in states %}
+                            <option value="{{ state }}"
+                                {% if selected_state == state %}selected{% endif %}>
+                                {{ state }}
                             </option>
                             {% endfor %}
-                        </select>
-                        <i class="fas fa-chevron-down toggle-icon"></i>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="dropdown-wrapper">
-                        <select name="lead_source" class="form-control">
-                            <option value="">All</option>
-                            <option value="Customer" 
-                                {% if request.GET.lead_source == "Customer" %}selected{% endif %}>
-                                Customer
-                            </option>
-                            <option value="Lead" 
-                                {% if request.GET.lead_source == "Lead" %}selected{% endif %}>
-                                Lead
-                            </option>
                         </select>
                         <i class="fas fa-chevron-down toggle-icon"></i>
                     </div>
@@ -97,10 +97,11 @@
                 <!-- City Filter -->
                 <div class="col-md-3">
                     <div class="dropdown-wrapper">
-                        <select name="city" class="form-control">
+                        <select name="city" id="cityDropdown" class="form-control">
                             <option value="">City</option>
                             {% for city in cities %}
-                            <option value="{{ city }}" {% if request.GET.city == city %}selected{% endif %}>
+                            <option value="{{ city }}"
+                                {% if selected_city == city %}selected{% endif %}>
                                 {{ city }}
                             </option>
                             {% endfor %}
@@ -109,14 +110,16 @@
                     </div>
                 </div>
 
-                <!-- State Filter -->
+
+                <!-- Hospital Filter -->
                 <div class="col-md-3">
                     <div class="dropdown-wrapper">
-                        <select name="state" class="form-control">
-                            <option value="">State</option>
-                            {% for state in states %}
-                            <option value="{{ state }}" {% if request.GET.state == state %}selected{% endif %}>
-                                {{ state }}
+                        <select name="hospital" id="hospitalDropdown" class="form-control">
+                            <option value="">Hospital</option>
+                            {% for hospital in hospitals %}
+                            <option value="{{ hospital.id }}"
+                                {% if selected_hospital == hospital.id|stringformat:"s" %}selected{% endif %}>
+                                {{ hospital.id }} - {{ hospital.hospital_name }} - {{ hospital.city }}
                             </option>
                             {% endfor %}
                         </select>
@@ -124,17 +127,41 @@
                     </div>
                 </div>
 
-                <!-- Search Text -->
+                <!-- Lead Source Filter -->
                 <div class="col-md-3">
-                    <input type="text" name="q" class="form-control" placeholder="Search..."
-                        value="{{ request.GET.q }}">
+                    <div class="dropdown-wrapper">
+                        <select name="lead_source" class="form-control">
+                            <option value="">All</option>
+                            <option value="Customer"
+                                {% if selected_lead_source == "Customer" %}selected{% endif %}>
+                                Customer
+                            </option>
+                            <option value="Lead"
+                                {% if selected_lead_source == "Lead" %}selected{% endif %}>
+                                Lead
+                            </option>
+                        </select>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </div>
+                </div>
+
+                <!-- Search Box -->
+                <div class="col-md-3">
+                    <input type="text"
+                           name="q"
+                           class="form-control"
+                           placeholder="Search..."
+                           value="{{ search_query }}">
                 </div>
 
                 <!-- Buttons -->
                 <div class="col-md-12 d-flex gap-2 mt-1">
-                    <button type="submit" class="btn btn-primary"><i class="fas fa-search me-1"></i>Search</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search me-1"></i> Search
+                    </button>
+
                     <a href="{% url 'hospital_leads_list' %}" class="btn btn-outline-danger">
-                        <i class="fas fa-times me-1"></i>Clear Filters
+                        <i class="fas fa-times me-1"></i> Clear Filters
                     </a>
                 </div>
             </form>
@@ -144,11 +171,11 @@
     <!-- VIEW TOGGLE BUTTONS -->
     <div class="card-body pb-0">
         <div class="d-flex justify-content-end mb-3">
-            <button id="tableViewBtn" class="btn btn-outline-primary view-toggle-btn me-2">
+            <button id="tableViewBtn" type="button" class="btn btn-outline-primary view-toggle-btn me-2">
                 <i class="fas fa-table me-1"></i>Table View
             </button>
 
-            <button id="cardViewBtn" class="btn btn-outline-primary view-toggle-btn active">
+            <button id="cardViewBtn" type="button" class="btn btn-outline-primary view-toggle-btn active">
                 <i class="fas fa-id-card me-1"></i>Card View
             </button>
         </div>
@@ -156,9 +183,7 @@
 
     <!-- CONTENT -->
     <div class="card-body p-0">
-
         {% if leads %}
-
         <!-- TABLE VIEW -->
         <div id="tableView" class="table-responsive" style="display:none;">
             <table class="table table-hover mb-0">
@@ -178,7 +203,6 @@
                 <tbody>
                     {% for lead in leads %}
                     <tr>
-
                         <!-- Hospital Name -->
                         <td>
                             <div class="fw-bold text-primary">{{ lead.hospital_name }}</div>
@@ -195,20 +219,18 @@
                             {% endif %}
                         </td>
 
-                        <!-- Phone (FIXED CALL + WHATSAPP) -->
+                        <!-- Phone -->
                         <td>
                             <div class="d-flex align-items-center gap-2">
                                 <span class="fw-bold text-nowrap">{{ lead.phone }}</span>
 
-                                <!-- CALL -->
-                                <a href="tel:{{ lead.phone }}" class="text-primary contact-icon" title="Call">
-                                    <i class="fas fa-phone" style="font-size: 26px;"></i>
+                                <a href="tel:{{ lead.phone }}" class="text-primary" title="Call">
+                                    <i class="fas fa-phone" style="font-size: 20px;"></i>
                                 </a>
 
-                                <!-- WHATSAPP -->
                                 <a href="https://wa.me/{{ lead.phone }}" target="_blank"
-                                class="text-success contact-icon" title="WhatsApp">
-                                    <i class="fab fa-whatsapp" style="font-size: 26px;"></i>
+                                   class="text-success" title="WhatsApp">
+                                    <i class="fab fa-whatsapp" style="font-size: 20px;"></i>
                                 </a>
                             </div>
                         </td>
@@ -221,22 +243,22 @@
                         <!-- Products -->
                         <td>
                             {% if lead.lead_products.all %}
-                            {% for lead_product in lead.lead_products.all %}
-                            <span class="badge bg-success me-1 mb-1">{{ lead_product.product.name }}</span>
-                            {% endfor %}
+                                {% for lead_product in lead.lead_products.all %}
+                                <span class="badge bg-success me-1 mb-1">{{ lead_product.product.name }}</span>
+                                {% endfor %}
                             {% else %}
-                            <span class="text-muted">No products</span>
+                                <span class="text-muted">No products</span>
                             {% endif %}
                         </td>
 
                         <!-- Parts -->
                         <td>
                             {% if lead.lead_parts.all %}
-                            {% for lead_part in lead.lead_parts.all %}
-                            <span class="badge bg-warning text-dark me-1 mb-1">{{ lead_part.part.name }}</span>
-                            {% endfor %}
+                                {% for lead_part in lead.lead_parts.all %}
+                                <span class="badge bg-warning text-dark me-1 mb-1">{{ lead_part.part.name }}</span>
+                                {% endfor %}
                             {% else %}
-                            <span class="text-muted">No parts</span>
+                                <span class="text-muted">No parts</span>
                             {% endif %}
                         </td>
 
@@ -257,77 +279,72 @@
                         <!-- Actions -->
                         <td>
                             <div class="btn-group" role="group">
-                                <a href="{% url 'hospital_lead_detail' lead.id %}" class="btn btn-sm btn-outline-info">
+                                <a href="{% url 'hospital_lead_detail' lead.id %}"
+                                   class="btn btn-sm btn-outline-info">
                                     <i class="fas fa-eye"></i>
                                 </a>
 
-                                <a href="{% url 'hospital_lead_edit' lead.id %}" class="btn btn-sm btn-outline-primary">
+                                <a href="{% url 'hospital_lead_edit' lead.id %}"
+                                   class="btn btn-sm btn-outline-primary">
                                     <i class="fas fa-edit"></i>
                                 </a>
 
-                                <button type="button" class="btn btn-sm btn-outline-danger"
-                                        onclick="confirmDelete(`{{ lead.id }}`, '{{ lead.hospital_name }}')">
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-danger"
+                                        onclick="confirmDelete('{{ lead.id }}', '{{ lead.hospital_name }}')">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
                         </td>
-
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
 
-        <!-- CARD VIEW (DESKTOP + MOBILE) -->
+        <!-- CARD VIEW -->
         <div id="cardView" class="p-2">
-
             {% for lead in leads %}
             <div class="lead-card border rounded p-3 mb-2 shadow-sm">
 
                 <!-- Header -->
-<div class="d-flex justify-content-between align-items-center mb-2 flex-wrap">
-    <div>
-        <h5 class="mb-1 text-primary fw-bold">{{ lead.hospital_name }}</h5>
-        <small class="text-muted">
-            {{ lead.city }}{% if lead.city and lead.state %}, {% endif %}{{ lead.state }}
-        </small>
-    </div>
+                <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap">
+                    <div>
+                        <h5 class="mb-1 text-primary fw-bold">{{ lead.hospital_name }}</h5>
+                        <small class="text-muted">
+                            {{ lead.city }}{% if lead.city and lead.state %}, {% endif %}{{ lead.state }}
+                        </small>
+                    </div>
 
-    <div class="d-flex gap-2 flex-wrap">
+                    <div class="d-flex gap-2 flex-wrap">
+                        <span class="badge px-3 py-2 rounded-pill"
+                              style="background:#d1ecf1; color:#0c5460; font-size:0.85rem;">
+                            <i class="fas fa-user-tag me-1"></i>{{ lead.lead_source }}
+                        </span>
 
-        <span class="badge px-3 py-2 rounded-pill" 
-              style="background:#d1ecf1; color:#0c5460; font-size:0.85rem;">
-            <i class="fas fa-user-tag me-1"></i>{{ lead.lead_source }}
-        </span>
-
-        <span class="badge px-3 py-2 rounded-pill" 
-              style="background:#e8eaf6; color:#3f51b5; font-size:0.85rem;">
-            <i class="fas fa-hospital me-1"></i>{{ lead.hospital_type }}
-        </span>
-
-    </div>
-</div>
+                        <span class="badge px-3 py-2 rounded-pill"
+                              style="background:#e8eaf6; color:#3f51b5; font-size:0.85rem;">
+                            <i class="fas fa-hospital me-1"></i>{{ lead.hospital_type }}
+                        </span>
+                    </div>
+                </div>
 
                 <!-- Contact Person -->
-                <div class="mt-3">
+                <div class="mt-2">
                     <strong>Contact:</strong> {{ lead.first_name }} {{ lead.last_name }}
                 </div>
 
-                <!-- Phone + Call + WhatsApp (FIXED) -->
+                <!-- Phone + Call + WhatsApp -->
                 <div class="mt-2">
                     <strong>Phone:</strong>
                     <div class="d-flex align-items-center gap-3 mt-1">
                         <span class="fw-bold">{{ lead.phone }}</span>
-
-                        <!-- CALL -->
-                        <a href="tel:{{ lead.phone }}" class="text-primary contact-icon" title="Call">
-                            <i class="fas fa-phone fa-lg" style="font-size: 26px;"></i>
+                        <a href="tel:{{ lead.phone }}" class="text-primary" title="Call">
+                            <i class="fas fa-phone fa-lg"></i>
                         </a>
-
-                        <!-- WHATSAPP -->
                         <a href="https://wa.me/{{ lead.phone }}" target="_blank"
-                        class="text-success contact-icon" title="WhatsApp">
-                            <i class="fab fa-whatsapp fa-lg" style="font-size: 26px;"></i>
+                           class="text-success" title="WhatsApp">
+                            <i class="fab fa-whatsapp fa-lg"></i>
                         </a>
                     </div>
                 </div>
@@ -345,65 +362,105 @@
                     {% endif %}
                 </div>
 
-                <!-- Action Buttons -->
+                <!-- Actions -->
                 <div class="mt-3 d-flex gap-2">
-                    <a href="{% url 'hospital_lead_detail' lead.id %}" 
-                    class="btn btn-info btn-sm flex-fill">
+                    <a href="{% url 'hospital_lead_detail' lead.id %}"
+                       class="btn btn-info btn-sm flex-fill">
                         <i class="fas fa-eye me-1"></i> View
                     </a>
 
                     <a href="{% url 'hospital_lead_edit' lead.id %}"
-                    class="btn btn-primary btn-sm">
+                       class="btn btn-primary btn-sm">
                         <i class="fas fa-edit"></i>
                     </a>
 
                     <button class="btn btn-danger btn-sm"
-                            onclick="confirmDelete(`{{ lead.id }}`, '{{ lead.hospital_name }}')">
+                            onclick="confirmDelete('{{ lead.id }}', '{{ lead.hospital_name }}')">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
-
             </div>
             {% endfor %}
-
         </div>
-
-
         {% else %}
         <div class="p-4 text-center text-muted">
             <i class="fas fa-inbox fa-3x mb-3"></i>
             <h5>No leads found</h5>
         </div>
         {% endif %}
-
     </div>
 </div>
 
-<!-- TOGGLE SCRIPT -->
+<!-- VIEW TOGGLE SCRIPT -->
 <script>
     const tableBtn = document.getElementById("tableViewBtn");
     const cardBtn = document.getElementById("cardViewBtn");
     const tableView = document.getElementById("tableView");
     const cardView = document.getElementById("cardView");
 
-    // Default: Show Card View
+    // Default: show card view first
     cardView.style.display = "block";
     tableView.style.display = "none";
 
-    tableBtn.onclick = () => {
+    tableBtn.addEventListener("click", function () {
         tableView.style.display = "block";
         cardView.style.display = "none";
         tableBtn.classList.add("active");
         cardBtn.classList.remove("active");
-    };
+    });
 
-    cardBtn.onclick = () => {
-        cardView.style.display = "block";
+    cardBtn.addEventListener("click", function () {
         tableView.style.display = "none";
+        cardView.style.display = "block";
         cardBtn.classList.add("active");
         tableBtn.classList.remove("active");
-    };
+    });
+</script>
+
+<!-- DEPENDENT DROPDOWNS -->
+<script>
+    const stateDropdown = document.getElementById("stateDropdown");
+    const cityDropdown = document.getElementById("cityDropdown");
+    const hospitalDropdown = document.getElementById("hospitalDropdown");
+
+    stateDropdown.addEventListener("change", function () {
+        const state = this.value;
+
+        // Reset city and hospital
+        cityDropdown.innerHTML = '<option value="">City</option>';
+        hospitalDropdown.innerHTML = '<option value="">Hospital</option>';
+
+        if (!state) return;
+
+        fetch("{% url 'get_cities' %}?state=" + encodeURIComponent(state))
+            .then(response => response.json())
+            .then(data => {
+                data.cities.forEach(city => {
+                    const opt = document.createElement('option');
+                    opt.value = city;
+                    opt.textContent = city;
+                    cityDropdown.appendChild(opt);
+                });
+            });
+    });
+
+    cityDropdown.addEventListener("change", function () {
+        const city = this.value;
+
+        hospitalDropdown.innerHTML = '<option value="">Hospital</option>';
+        if (!city) return;
+
+        fetch("{% url 'get_hospitals' %}?city=" + encodeURIComponent(city))
+            .then(response => response.json())
+            .then(data => {
+                data.hospitals.forEach(h => {
+                    const opt = document.createElement('option');
+                    opt.value = h.id;
+                    opt.textContent = `${h.id} - ${h.hospital_name} - ${h.city}`;
+                    hospitalDropdown.appendChild(opt);
+                });
+            });
+    });
 </script>
 
 {% endblock %}
-

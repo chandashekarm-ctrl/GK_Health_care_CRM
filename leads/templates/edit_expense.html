@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h4>Edit Expense</h4>
+        </div>
+
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label class="form-label">Staff</label>
+                    <select name="staff" class="form-control" required>
+                        {% for s in staff_list %}
+                        <option value="{{ s.id }}" 
+                            {% if s.id == expense.staff.id %}selected{% endif %}>
+                            {{ s.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Expense Type</label>
+                    <select name="expense_type" class="form-control" required>
+                        {% for type, label in expense_types %}
+                        <option value="{{ type }}"
+                                {% if type == expense.expense_type %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Amount</label>
+                    <input type="number" name="amount" class="form-control" 
+                           value="{{ expense.amount }}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <textarea name="description" class="form-control">{{ expense.description }}</textarea>
+                </div>
+
+                <button class="btn btn-primary">Update Expense</button>
+                <a href="{% url 'staff_expense_list' %}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

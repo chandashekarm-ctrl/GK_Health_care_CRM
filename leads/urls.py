@@ -109,6 +109,16 @@ urlpatterns = [
     path('view-task/<int:task_id>/', views.view_task, name='view_task'),
     path("staff-expense/add/", views.add_staff_expense, name="add_staff_expense"),
     path("staff-expense/", views.staff_expense_list, name="staff_expense_list"),
+    path("expense/<int:id>/edit/", views.edit_expense, name="edit_expense"),
+    path("expense/<int:id>/delete/", views.delete_expense, name="delete_expense"),
+
+
+    path("get-cities/", views.get_cities, name="get_cities"),
+    path("get-hospitals/", views.get_hospitals, name="get_hospitals"),
+    path('get-cities/', views.get_cities, name='get_cities'),
+    path('get-hospitals/', views.get_hospitals, name='get_hospitals'),
+    path("ajax/vendor-cities/", views.get_vendor_cities, name="get_vendor_cities"),
+    path("ajax/vendors-by-city/", views.get_vendors_by_city, name="get_vendors_by_city"),
 
 ]
 

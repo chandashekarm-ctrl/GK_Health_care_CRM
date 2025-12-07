@@ -27,40 +27,26 @@
         font-size: 20px;
     }
 
-    /* Responsive fix for small screens */
-    @media(max-width: 576px) {
-        .lead-card {
-            padding: 14px;
-        }
-        .table-responsive {
-            font-size: 14px;
-        }
-        .view-toggle-btn {
-            font-size: 14px;
-            padding: 6px 10px;
-        }
+    .dropdown-wrapper {
+        position: relative;
     }
-
-@media(max-width: 576px) {
-    .page-header .badge {
-        margin: 6px;
-        font-size: 23px;
-        padding: 4px 8px;
+    .dropdown-wrapper .toggle-icon {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+        color: #666;
     }
-}
-
-
 </style>
 
-
+<!-- PAGE HEADER -->
 <div class="page-header">
     <div class="d-flex justify-content-between align-items-center flex-wrap">
         <div>
             <h1 class="page-title">
-                <i class="fas fa-users me-2"></i>Customers
+                <i class="fas fa-users me-2"></i> Customers
             </h1>
-
-            <!-- Exact style you requested -->
             <span class="badge bg-primary">
                 Total: {{ total_customers }}
             </span>
@@ -68,85 +54,87 @@
     </div>
 </div>
 
-
-<!-- MOBILE DROPDOWN FILTER BUTTON -->
+<!-- MOBILE FILTER BUTTON -->
 <div class="d-md-none mb-3">
-    <button class="btn btn-primary w-100 d-flex justify-content-between align-items-center"
-            data-bs-toggle="collapse" data-bs-target="#filtersDropdown">
+    <button class="btn btn-primary w-100" data-bs-toggle="collapse" data-bs-target="#filtersDropdown">
         <span>Filters</span>
         <i class="fas fa-filter"></i>
     </button>
 </div>
 
-
-<!-- FILTER CARD -->
+<!-- FILTER SECTION -->
 <div id="filtersDropdown" class="collapse d-md-block">
 <div class="card">
     <div class="card-body bg-light border-bottom">
-        <div class="row g-3 align-items-center">
-            <!-- Hospital Filter -->
-            <form class="col-md-3 d-flex" method="get" action="{% url 'customer_list' %}">
-                <input type="hidden" name="q" id="hiddenHospitalRow">  
-                <div class="input-group">
-                    <select class="form-control" name="hospital"
-                            onchange="document.getElementById('hiddenHospitalRow').value = 'hospital_name '+this.options[this.selectedIndex].text;">
-                        <option value="">Hospital ID</option>
-                        {% for hospital in hospitals %}
-                        <option value="{{ hospital.id }}">
-                            {{ hospital.id }} - {{ hospital.hospital_name }} - {{ hospital.city }}
+
+        <form method="get" class="row g-3">
+             <!-- STATE -->
+            <div class="col-md-3">
+                <div class="dropdown-wrapper">
+                    <select name="state" id="stateDropdown" class="form-control">
+                        <option value="">State</option>
+                        {% for state in states %}
+                        <option value="{{ state }}" {% if request.GET.state == state %}selected{% endif %}>
+                            {{ state }}
                         </option>
                         {% endfor %}
                     </select>
-                    <button class="btn btn-primary" title="Search">
-                        <i class="fas fa-search"></i>
-                    </button>
+                    <i class="fas fa-chevron-down toggle-icon"></i>
                 </div>
-            </form>
-            <!-- City Filter -->
-            <form class="col-md-3 d-flex" method="get" action="{% url 'customer_list' %}">
-                <input type="hidden" name="q" id="hiddenCityRow">
-                <div class="input-group">
-                    <select class="form-control" name="city"
-                            onchange="document.getElementById('hiddenCityRow').value = 'city '+this.value;">
+            </div>
+            <!-- CITY -->
+            <div class="col-md-3">
+                <div class="dropdown-wrapper">
+                    <select name="city" id="cityDropdown" class="form-control">
                         <option value="">City</option>
                         {% for city in cities %}
-                        {% if city %}
-                        <option value="{{ city }}">{{ city }}</option>
-                        {% endif %}
+                        <option value="{{ city }}" {% if request.GET.city == city %}selected{% endif %}>
+                            {{ city }}
+                        </option>
                         {% endfor %}
                     </select>
-                    <button class="btn btn-primary" title="Search">
-                        <i class="fas fa-search"></i>
-                    </button>
+                    <i class="fas fa-chevron-down toggle-icon"></i>
                 </div>
-            </form>
-            <!-- State Filter -->
-            <form class="col-md-3 d-flex" method="get" action="{% url 'customer_list' %}">
-                <input type="hidden" name="q" id="hiddenStateRow">
-                <div class="input-group">
-                    <select class="form-control" name="state"
-                            onchange="document.getElementById('hiddenStateRow').value = 'state '+this.value;">
-                        <option value="">State</option>
-                        {% for state in states %}
-                        {% if state %}
-                        <option value="{{ state }}">{{ state }}</option>
-                        {% endif %}
-                        {% endfor %}
-                    </select>
-                    <button class="btn btn-primary" title="Search">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </div>
-            </form>
+            </div>
 
-            <!-- CLEAN FILTER BUTTON -->
+            <!-- HOSPITAL -->
             <div class="col-md-3">
-                <a href="{% url 'customer_list' %}" class="btn btn-outline-danger w-100">
-                    <i class="fas fa-times-circle me-1"></i> Clear Filters
+                <div class="dropdown-wrapper">
+                    <select name="hospital" id="hospitalDropdown" class="form-control">
+                        <option value="">Hospital</option>
+                        {% for hospital in hospitals %}
+                        <option value="{{ hospital.id }}" 
+                            {% if request.GET.hospital == hospital.id|stringformat:"s" %}selected{% endif %}>
+                            {{ hospital.id }} - {{ hospital.hospital_name }} ({{ hospital.city }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <i class="fas fa-chevron-down toggle-icon"></i>
+                </div>
+            </div>
+
+            
+           
+
+            <!-- SEARCH -->
+            <div class="col-md-3">
+                <input type="text" name="q" class="form-control" placeholder="Search..."
+                       value="{{ request.GET.q }}">
+            </div>
+
+            <!-- ACTION BUTTONS -->
+            <div class="col-md-12 d-flex gap-2 mt-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search me-1"></i> Search
+                </button>
+
+                <a href="{% url 'customer_list' %}" class="btn btn-outline-danger">
+                    <i class="fas fa-times me-1"></i> Clear
                 </a>
             </div>
 
-        </div>
+        </form>
+
     </div>
 </div>
 </div>
@@ -161,10 +149,11 @@
             <i class="fas fa-list"></i> Card View
         </button>
     </div>
+</div>
 
 
 <!-- ========================= TABLE VIEW ========================= -->
-<div id="tableView">
+<div id="tableView" style="display:none;">
     <div class="card">
         <div class="card-body p-0">
 
@@ -182,25 +171,25 @@
                         </tr>
                     </thead>
 
-                   <tbody>
-                {% for lead in hospital_leads %}
-                <tr>
+                 <tbody>
+                    {% for lead in hospital_leads %}
+                    <tr>
 
-                    <td class="fw-bold text-primary">HL-{{ lead.id }}</td>
+                        <td class="fw-bold text-primary">HL-{{ lead.id }}</td>
 
-                    <td>
-                        <div class="d-flex align-items-center">
-                            <div class="avatar-sm bg-primary text-white d-flex align-items-center justify-content-center fw-bold me-3">
-                                {{ lead.hospital_name|first|upper }}
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm bg-primary text-white d-flex align-items-center justify-content-center fw-bold me-3">
+                                    {{ lead.hospital_name|first|upper }}
+                                </div>
+
+                                <div>
+                                    <strong>{{ lead.hospital_name }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ lead.first_name }} {{ lead.last_name }}</small>
+                                </div>
                             </div>
-
-                            <div>
-                                <strong>{{ lead.hospital_name }}</strong>
-                                <br>
-                                <small class="text-muted">{{ lead.first_name }} {{ lead.last_name }}</small>
-                            </div>
-                        </div>
-                    </td>
+                        </td>
 
                     <td>
                         <span class="badge 
@@ -252,18 +241,16 @@
                         </div>
                     </td>
 
-                </tr>
-                {% endfor %}
-            </tbody>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
 
 
                 </table>
             </div>
 
             {% else %}
-            <div class="p-4 text-center text-muted">
-                <i class="fas fa-exclamation-circle me-2"></i>No hospital leads found.
-            </div>
+            <div class="p-4 text-center text-muted">No customers found.</div>
             {% endif %}
 
         </div>
@@ -271,10 +258,8 @@
 </div>
 
 
-
 <!-- ========================= CARD VIEW ========================= -->
-<div id="cardView" style="display: none;">
-
+<div id="cardView">
     {% for lead in hospital_leads %}
     <div class="lead-card mb-3">
 
@@ -341,37 +326,69 @@
 
     </div>
     {% endfor %}
-
 </div>
 
-</div>
-
-
-
-<!-- VIEW TOGGLE SCRIPT -->
+<!-- VIEW TOGGLE JS -->
 <script>
     const tableBtn = document.getElementById("tableViewBtn");
-    const cardBtn = document.getElementById("cardViewBtn");
-    const tableView = document.getElementById("tableView");
-    const cardView = document.getElementById("cardView");
-
-    // Default: show card view first
-    cardView.style.display = "block";
-    tableView.style.display = "none";
+    const cardBtn  = document.getElementById("cardViewBtn");
+    const tableDiv = document.getElementById("tableView");
+    const cardDiv  = document.getElementById("cardView");
 
     tableBtn.onclick = () => {
-        tableView.style.display = "block";
-        cardView.style.display = "none";
+        tableDiv.style.display = "block";
+        cardDiv.style.display  = "none";
         tableBtn.classList.add("active");
         cardBtn.classList.remove("active");
     };
 
     cardBtn.onclick = () => {
-        tableView.style.display = "none";
-        cardView.style.display = "block";
+        tableDiv.style.display = "none";
+        cardDiv.style.display  = "block";
         cardBtn.classList.add("active");
         tableBtn.classList.remove("active");
     };
+</script>
+
+
+<!-- DEPENDENT FILTER JS -->
+<script>
+document.getElementById("stateDropdown").addEventListener("change", function () {
+    let state = this.value;
+
+    let cityDropdown = document.getElementById("cityDropdown");
+    let hospitalDropdown = document.getElementById("hospitalDropdown");
+
+    cityDropdown.innerHTML = '<option value="">City</option>';
+    hospitalDropdown.innerHTML = '<option value="">Hospital</option>';
+
+    if (state) {
+        fetch(`/get-cities/?state=${state}`)
+        .then(r => r.json())
+        .then(data => {
+            data.cities.forEach(city => {
+                cityDropdown.innerHTML += `<option value="${city}">${city}</option>`;
+            });
+        });
+    }
+});
+
+document.getElementById("cityDropdown").addEventListener("change", function () {
+    let city = this.value;
+
+    let hospitalDropdown = document.getElementById("hospitalDropdown");
+    hospitalDropdown.innerHTML = '<option value="">Hospital</option>';
+
+    if (city) {
+        fetch(`/get-hospitals/?city=${city}`)
+        .then(r => r.json())
+        .then(data => {
+            data.hospitals.forEach(h => {
+                hospitalDropdown.innerHTML += `<option value="${h.id}">${ h.id} - ${h.hospital_name}</option>`;
+            });
+        });
+    }
+});
 </script>
 
 

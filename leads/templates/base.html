@@ -204,6 +204,35 @@
             margin-bottom: 20px;
             color: var(--dark-color);
         }
+        /* Make Sidebar Scrollable */
+        /* Make Sidebar Scrollable but Hide Scrollbar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, #2563EB, #10B981);
+            color: white;
+            height: 100vh;
+            overflow-y: scroll;   /* Enable scrolling */
+            overflow-x: hidden;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+
+        /* Hide scrollbar in Chrome, Edge, Safari */
+        .sidebar::-webkit-scrollbar {
+            width: 0px;
+        }
+
+        /* Hide scrollbar in Firefox */
+        .sidebar {
+            scrollbar-width: none;
+        }
+
+        /* Hide scrollbar in Internet Explorer / Edge Legacy */
+        .sidebar {
+            -ms-overflow-style: none;
+        }
+
     </style>
     
     {% block extra_css %}{% endblock %}

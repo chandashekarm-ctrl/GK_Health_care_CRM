@@ -39,7 +39,33 @@ from .models import Staff
 from hr.models import Expense, EXPENSE_TYPES
 from django.contrib.auth.decorators import user_passes_test
 
+def edit_expense(request, id):
+    expense = Expense.objects.get(id=id)
 
+    if request.method == "POST":
+        expense.staff_id = request.POST.get("staff")
+        expense.expense_type = request.POST.get("expense_type")
+        expense.amount = request.POST.get("amount")
+        expense.description = request.POST.get("description")
+
+        # Optional: Update Date if editable
+        # expense.created_at = request.POST.get("created_at")
+
+        expense.save()
+        messages.success(request, "Expense updated successfully!")
+        return redirect("staff_expense_list")
+
+    return render(request, "edit_expense.html", {
+        "expense": expense,
+        "staff_list": Staff.objects.all(),
+        "expense_types": EXPENSE_TYPES,
+    })
+
+def delete_expense(request, id):
+    expense = Expense.objects.get(id=id)
+    expense.delete()
+    messages.success(request, "Expense deleted successfully!")
+    return redirect("staff_expense_list")
 
 def add_staff_expense(request):
     staff_members = Staff.objects.all()
@@ -342,40 +368,49 @@ def get_form_context():
     }
     return context
 
-def hospital_leads_list(request):
+from django.shortcuts import render
+from django.db.models import Q
+from django.http import JsonResponse
+from .models import HospitalLead
+from django.views.decorators.http import require_GET
 
-    # GET PARAMETERS
-    search_query = request.GET.get('q', '').strip()
-    hospital_filter = request.GET.get('hospital', '').strip()
-    city_filter = request.GET.get('city', '').strip()
-    state_filter = request.GET.get('state', '').strip()
-    lead_source_filter = request.GET.get('lead_source', '').strip()
-    
-    # BASE QUERY
+
+def hospital_leads_list(request):
+    """
+    Show ALL hospital leads (Lead + Customer) with filters:
+    - hospital
+    - lead_source (All / Customer / Lead)
+    - city
+    - state
+    - free-text search 'q'
+    """
+
+    # --- Base queryset (ALL leads) ---
     leads = HospitalLead.objects.all().prefetch_related(
         'lead_parts__part',
         'lead_products__product'
     ).order_by('-created_at')
 
-    # APPLY FILTERS -----------------------------------------
+    # --- Get filter params ---
+    hospital_filter = request.GET.get('hospital', '').strip()
+    city_filter = request.GET.get('city', '').strip()
+    state_filter = request.GET.get('state', '').strip()
+    lead_source_filter = request.GET.get('lead_source', '').strip()
+    search_query = request.GET.get('q', '').strip()
 
-    # Lead Source Filter
-    if lead_source_filter:
-        leads = leads.filter(lead_source=lead_source_filter)
-
-    # Hospital Filter
+    # --- Apply filters ---
     if hospital_filter:
         leads = leads.filter(id=hospital_filter)
 
-    # City Filter
+    if lead_source_filter:
+        leads = leads.filter(lead_source=lead_source_filter)
+
     if city_filter:
         leads = leads.filter(city__iexact=city_filter)
 
-    # State Filter
     if state_filter:
         leads = leads.filter(state__iexact=state_filter)
 
-    # APPLY SEARCH ------------------------------------------
     if search_query:
         leads = leads.filter(
             Q(hospital_name__icontains=search_query) |
@@ -386,28 +421,85 @@ def hospital_leads_list(request):
             Q(city__icontains=search_query) |
             Q(state__icontains=search_query)
         )
-    total_leads = HospitalLead.objects.count()
-    total_customers = HospitalLead.objects.filter(lead_source="Customer").count()
-    total_normal_leads = HospitalLead.objects.filter(lead_source="Lead").count()
-    # DROPDOWN LIST DATA -------------------------------------
-    hospitals = HospitalLead.objects.all()
-    cities = HospitalLead.objects.exclude(city="").values_list('city', flat=True).distinct()
-    states = HospitalLead.objects.exclude(state="").values_list('state', flat=True).distinct()
 
-    return render(request, 'hospital_leads_list.html', {
+    # --- For dropdowns (ALL leads, not filtered, or you can use distinct over full table) ---
+    base_queryset = HospitalLead.objects.all()
+
+    hospitals = base_queryset.order_by('hospital_name')
+
+    cities = sorted(set(
+        c.strip().title()
+        for c in base_queryset.values_list('city', flat=True)
+        if c
+    ))
+
+    states = sorted(set(
+        s.strip().title()
+        for s in base_queryset.values_list('state', flat=True)
+        if s
+    ))
+
+    total_leads = base_queryset.count()
+
+    context = {
         'leads': leads,
-        'search_query': search_query,
         'hospitals': hospitals,
         'cities': cities,
         'states': states,
+        'total_leads': total_leads,
+
+        # Keep selected values for UI
         'selected_hospital': hospital_filter,
         'selected_city': city_filter,
         'selected_state': state_filter,
         'selected_lead_source': lead_source_filter,
-        'total_leads': total_leads,
-    'total_customers': total_customers,
-    'total_normal_leads': total_normal_leads,
-    })
+        'search_query': search_query,
+    }
+
+    return render(request, 'hospital_leads_list.html', context)
+
+
+# ---------- Dependent dropdown AJAX APIs ----------
+
+@require_GET
+def get_cities(request):
+    """
+    Return cities for a given state (for dropdown).
+    URL: /get-cities/?state=Karnataka
+    """
+    state = request.GET.get('state', '').strip()
+    if not state:
+        return JsonResponse({'cities': []})
+
+    qs = HospitalLead.objects.filter(state__iexact=state).values_list('city', flat=True)
+    cities = sorted(set(
+        c.strip().title()
+        for c in qs if c
+    ))
+    return JsonResponse({'cities': cities})
+
+
+@require_GET
+def get_hospitals(request):
+    """
+    Return hospitals for a given city (for dropdown).
+    URL: /get-hospitals/?city=Bengaluru
+    """
+    city = request.GET.get('city', '').strip()
+    if not city:
+        return JsonResponse({'hospitals': []})
+
+    qs = HospitalLead.objects.filter(city__iexact=city).order_by('hospital_name')
+    hospitals = [
+        {
+            'id': h.id,
+            'hospital_name': h.hospital_name,
+            'city': h.city or ''
+        }
+        for h in qs
+    ]
+    return JsonResponse({'hospitals': hospitals})
+
 
 
 def hospital_lead_detail(request, lead_id):
@@ -974,140 +1066,72 @@ def customer_list(request):
     """Display only CUSTOMER leads with filters."""
 
     # Base queryset → ONLY CUSTOMERS
-    base_queryset = HospitalLead.objects.filter(lead_source="Customer").order_by('-created_at')
+    base_queryset = HospitalLead.objects.filter(
+        lead_source="Customer"
+    ).order_by('-created_at')
 
-    query = request.GET.get('q', '').strip()
-    query_url = urllib.parse.quote(query)
-    filter_type = query_url.split('%20')[0]
+    # Get Filters
+    selected_hospital = request.GET.get("hospital")
+    selected_city = request.GET.get("city")
+    selected_state = request.GET.get("state")
+    search_term = request.GET.get("q", "").strip()
 
-    # Default
-    hospital_leads = base_queryset
-    hospitals = base_queryset
+    hospital_leads = base_queryset  # Start with all customers
 
-    # Filters
-    if filter_type == 'hospital_name':
-        hospital_id = query_url.split('%20')[1]
-        hospital_leads = base_queryset.filter(id=hospital_id)
-        hospitals = base_queryset.filter(id=hospital_id)
+    # Apply State Filter
+    if selected_state:
+        hospital_leads = hospital_leads.filter(state__iexact=selected_state)
 
-    elif filter_type == 'city':
-        city_name = query_url.split('%20')[1]
-        hospital_leads = base_queryset.filter(city__iexact=city_name)
-        hospitals = base_queryset.filter(city__iexact=city_name)
+    # Apply City Filter
+    if selected_city:
+        hospital_leads = hospital_leads.filter(city__iexact=selected_city)
 
-    elif filter_type == 'state':
-        state_name = query_url.split('%20')[1]
-        hospital_leads = base_queryset.filter(state__iexact=state_name)
-        hospitals = base_queryset.filter(state__iexact=state_name)
+    # Apply Hospital Filter
+    if selected_hospital:
+        hospital_leads = hospital_leads.filter(id=selected_hospital)
 
-    # Dropdown lists (ONLY customer data)
-    cities = sorted(set(
-        city.strip().title()
-        for city in base_queryset.values_list('city', flat=True)
-        if city
-    ))
+    # Apply Search Filter
+    if search_term:
+        hospital_leads = hospital_leads.filter(
+            Q(hospital_name__icontains=search_term) |
+            Q(first_name__icontains=search_term) |
+            Q(last_name__icontains=search_term) |
+            Q(city__icontains=search_term) |
+            Q(state__icontains=search_term)
+        )
 
+    # Dropdown lists depend on state/city filters
+    # States always from all customers
     states = sorted(set(
-        state.strip().title()
-        for state in base_queryset.values_list('state', flat=True)
-        if state
+        base_queryset.values_list("state", flat=True)
     ))
 
-    # Pagination for customers table
-    customers = Customer.objects.all()
-    paginator = Paginator(customers, 5)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-
-    return render(request, 'customer_list_1.html', {
-        'customers': page_obj,
-
-        'hospital_leads': hospital_leads,  # ← ONLY CUSTOMER LEADS NOW
-        'hospitals': hospitals,
-
-        'cities': cities,
-        'states': states,
-
-        'total_customers': base_queryset.count(),
-    })
-
-
-@user_passes_test(lambda u: u.is_superuser)
-def customer_list1(request):
-    """Display list of all customers (ONLY Customer Leads)."""
-
-    # ========= COUNTS =========
-    total_leads = HospitalLead.objects.count()
-    total_customers = HospitalLead.objects.filter(lead_source="Customer").count()
-    total_normal_leads = HospitalLead.objects.filter(lead_source="Lead").count()
-
-    # ========= BASE QUERY (ONLY CUSTOMERS) =========
-    base_queryset = HospitalLead.objects.filter(lead_source="Customer").order_by('-created_at')
-
-    # ========= FILTER LOGIC =========
-    query = request.GET.get('q', '').strip()        
-    query_url = urllib.parse.quote(query)           
-    filter_type = query_url.split('%20')[0]         
-
-    # Apply filters
-    if filter_type == 'hospital_name':
-        hospital_id = query_url.split('%20')[1]
-        hospital_leads = base_queryset.filter(id=hospital_id)
-        hospitals = base_queryset.filter(id=hospital_id)
-
-    elif filter_type == 'city':
-        city_name = query_url.split('%20')[1]
-        hospital_leads = base_queryset.filter(city__iexact=city_name)
-        hospitals = base_queryset.filter(city__iexact=city_name)
-
-    elif filter_type == 'state':
-        state_name = query_url.split('%20')[1]
-        hospital_leads = base_queryset.filter(state__iexact=state_name)
-        hospitals = base_queryset.filter(state__iexact=state_name)
-
+    # Cities depend on selected_state
+    if selected_state:
+        cities = sorted(set(
+            base_queryset.filter(state=selected_state).values_list("city", flat=True)
+        ))
     else:
-        hospital_leads = base_queryset
+        cities = sorted(set(base_queryset.values_list("city", flat=True)))
+
+    # Hospitals depend on selected_city
+    if selected_city:
+        hospitals = base_queryset.filter(city=selected_city)
+    else:
         hospitals = base_queryset
 
-    # ========= CITY + STATE DROPDOWN LISTS =========
-    cities = sorted(
-        set(
-            city.strip().title()
-            for city in HospitalLead.objects.filter(lead_source="Customer").values_list('city', flat=True)
-            if city
-        )
-    )
+    return render(request, "customer_list_1.html", {
+        "hospital_leads": hospital_leads,
+        "hospitals": hospitals,
+        "states": states,
+        "cities": cities,
+        "total_customers": base_queryset.count(),
 
-    states = sorted(
-        set(
-            state.strip().title()
-            for state in HospitalLead.objects.filter(lead_source="Customer").values_list('state', flat=True)
-            if state
-        )
-    )
-
-    # ========= PAGINATION FOR CUSTOMERS TABLE =========
-    customers = Customer.objects.all()
-    paginator = Paginator(customers, 5)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-
-    # ========= RETURN DATA TO TEMPLATE =========
-    return render(request, 'customer_list_1.html', {
-        'customers': page_obj,
-
-        # Filters
-        'cities': cities,
-        'states': states,
-
-        # Lead data (ONLY CUSTOMERS)
-        'hospital_leads': hospital_leads,
-        'hospitals': hospitals,
-
-        # Counts
-        'total_leads': total_leads,
-        'total_customers': total_customers,
-        'total_normal_leads': total_normal_leads,
+        # Selected filters for UI
+        "selected_state": selected_state,
+        "selected_city": selected_city,
+        "selected_hospital": selected_hospital,
+        "search_term": search_term,
     })
 
 def customer_detail(request, customer_id):
@@ -1363,56 +1387,75 @@ def save_vendor(request):
 
     return redirect('add_vendor')
 
+from django.db.models import Q
+from django.http import JsonResponse
+from django.shortcuts import render
+from django.core.paginator import Paginator
+
 def vendor_list(request):
-    vendors = Vendor.objects.all()
-    vendors_all = Vendor.objects.all().order_by('vendor_name')
 
-    # Dropdown + search box
-    search_query = request.GET.get('search', '')
-
-    if search_query:
-        # If the selected vendor matches EXACT name from dropdown → filter by exact name
-        if vendors_all.filter(vendor_name=search_query).exists():
-            vendors = vendors.filter(vendor_name=search_query)
-        else:
-            # Otherwise treat it as normal search input typing
-            vendors = vendors.filter(
-                Q(vendor_id__icontains=search_query) |
-                Q(vendor_name__icontains=search_query) |
-                Q(company_name__icontains=search_query) |
-                Q(phone_number__icontains=search_query) |
-                Q(email__icontains=search_query) |
-                Q(city__icontains=search_query)
-            )
+    vendors = Vendor.objects.all().order_by('-created_at')
 
     # Filters
-    state_filter = request.GET.get('state', '')
-    if state_filter:
-        vendors = vendors.filter(state__icontains=state_filter)
+    state = request.GET.get('state', '').strip()
+    city = request.GET.get('city', '').strip()
+    vendor_id = request.GET.get('vendor', '').strip()
+    search = request.GET.get('search', '').strip()
 
-    city_filter = request.GET.get('city', '')
-    if city_filter:
-        vendors = vendors.filter(city__icontains=city_filter)
+    # Apply state filter
+    if state:
+        vendors = vendors.filter(state__iexact=state)
 
-    states = Vendor.objects.exclude(state__isnull=True).exclude(state='')\
-                .values_list('state', flat=True).distinct().order_by('state')
+    # Apply city filter
+    if city:
+        vendors = vendors.filter(city__iexact=city)
 
-    cities = Vendor.objects.exclude(city__isnull=True).exclude(city='')\
-                .values_list('city', flat=True).distinct().order_by('city')
+    # Apply vendor exact filter
+    if vendor_id:
+        vendors = vendors.filter(id=vendor_id)
 
+    # Apply search box
+    if search:
+        vendors = vendors.filter(
+            Q(vendor_id__icontains=search) |
+            Q(vendor_name__icontains=search) |
+            Q(company_name__icontains=search) |
+            Q(phone_number__icontains=search) |
+            Q(email__icontains=search)
+        )
+
+    # Dropdown sources
+    all_states = Vendor.objects.exclude(state="").values_list("state", flat=True).distinct()
+    all_cities = Vendor.objects.exclude(city="").values_list("city", flat=True).distinct()
+    all_vendors = Vendor.objects.all().order_by("vendor_name")
+
+    # Pagination
     paginator = Paginator(vendors, 10)
     page_obj = paginator.get_page(request.GET.get('page'))
 
-    return render(request, 'vendor_list.html', {
-        'vendors': page_obj,
-        'vendors_all': vendors_all,
-        'search_query': search_query,
-        'state_filter': state_filter,
-        'city_filter': city_filter,
-        'states': states,
-        'cities': cities,
-        'total_vendors': Vendor.objects.count(),
+    return render(request, "vendor_list.html", {
+        "vendors": page_obj,
+        "states": sorted(all_states),
+        "cities": sorted(all_cities),
+        "vendors_all": all_vendors,
+
+        "selected_state": state,
+        "selected_city": city,
+        "selected_vendor": vendor_id,
+        "search_query": search,
+
+        "total_vendors": Vendor.objects.count(),
     })
+
+def get_vendor_cities(request):
+    state = request.GET.get("state", "")
+    cities = Vendor.objects.filter(state__iexact=state).values_list("city", flat=True).distinct()
+    return JsonResponse({"cities": sorted(list(cities))})
+
+def get_vendors_by_city(request):
+    city = request.GET.get("city", "")
+    vendors = Vendor.objects.filter(city__iexact=city).values("id", "vendor_name", "company_name")
+    return JsonResponse({"vendors": list(vendors)})
 
 def vendor_detail(request, vendor_id):
     vendor = get_object_or_404(Vendor, id=vendor_id)
@@ -2156,10 +2199,20 @@ def manage_task(request):
         tasks = TaskAssign.objects.filter(hospital_id__state=query_url.split('%20')[1]) 
         staff = Staff.objects.all()
         hospitals = HospitalLead.objects.all()
+    elif filter_type == 'staff':
+        staff_name = query_url.split('%20', 1)[1]
+        tasks = TaskAssign.objects.filter(staff__name__iexact=staff_name)
     else:
         hospitals = HospitalLead.objects.all()
         staff = Staff.objects.all()
         tasks = TaskAssign.objects.all()
+    cities = sorted(set([
+        city.strip().title() for city in HospitalLead.objects.values_list('city', flat=True) if city
+    ]))
+
+    states = sorted(set([
+        state.strip().title() for state in HospitalLead.objects.values_list('state', flat=True) if state
+    ]))
 
     cities = set(HospitalLead.objects.values_list('city', flat=True))
     # This returns all unique cities as a set (the cities will not be repeated more than once)
@@ -2214,3 +2267,21 @@ def New_Expenses(request):
         return redirect("Expenses")
 
     return redirect("Expenses")
+
+from django.http import JsonResponse
+
+def get_cities(request):
+    state = request.GET.get("state")
+    cities = HospitalLead.objects.filter(
+        state=state, 
+        lead_source="Customer"
+    ).values_list("city", flat=True).distinct()
+    return JsonResponse({"cities": list(cities)})
+
+def get_hospitals(request):
+    city = request.GET.get("city")
+    hospitals = HospitalLead.objects.filter(
+        city=city,
+        lead_source="Customer"
+    ).values("id", "hospital_name")
+    return JsonResponse({"hospitals": list(hospitals)})
