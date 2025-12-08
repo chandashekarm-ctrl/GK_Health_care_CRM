@@ -1,10 +1,26 @@
 {% extends "base.html" %}
 {% load static %}
+
 {% block title %}Tasks Assigned{% endblock %}
 
 {% block content %}
 
 <style>
+    .page-header {
+        background: linear-gradient(135deg, #4e73df 0%, #1cc88a 100%);
+        color: #fff;
+        padding: 1rem 1.2rem;
+        margin-bottom: 1rem;
+    }
+    .page-title {
+        font-size: 1.4rem;
+        font-weight: 500;
+        margin: 0;
+    }
+    .badge-total {
+        font-size: 0.9rem;
+    }
+
     .view-toggle-btn.active {
         background-color: #0d6efd !important;
         color: white !important;
@@ -28,252 +44,388 @@
         font-size: 20px;
     }
 
-    @media(max-width: 576px) {
-        .task-card-box { padding: 14px; }
-        .table-responsive { font-size: 14px; }
-        .view-toggle-btn { font-size: 14px; padding: 6px 10px; }
+    .staff-contact-icons a {
+        text-decoration: none;
+        margin-right: 8px;
+        font-size: 1rem;
     }
-    @media(max-width: 576px) {
-    .page-header .badge {
-        margin: 6px;
-        font-size: 23px;
-        padding: 4px 8px;
-    }
-}
 
+    @media(max-width: 576px) {
+        .page-title {
+            font-size: 1.2rem;
+        }
+        .badge-total {
+            margin-top: 0.3rem;
+        }
+        .task-card-box {
+            padding: 14px;
+        }
+        .table-responsive {
+            font-size: 14px;
+        }
+        .view-toggle-btn {
+            font-size: 13px;
+            padding: 6px 10px;
+        }
+    }
 </style>
 
 <!-- PAGE HEADER -->
-<div class="page-header">
-    <div class="d-flex justify-content-between align-items-center flex-wrap">
-        <div>
-            <h1 class="page-title">
-                <i class="fas fa-tasks me-2"></i>Tasks Assigned
-            </h1>
-            <span class="badge bg-primary">Total: {{ tasks|length }}</span>
-        </div>
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap">
+    <div class="mb-2 mb-sm-0">
+        <h1 class="page-title">
+            <i class="fas fa-tasks me-2"></i> Manage Tasks
+        </h1>
+        <span class="badge bg-light text-dark badge-total">
+            Total Tasks: {{ tasks|length }}
+        </span>
+    </div>
+
+    <div class="d-flex gap-2">
+        <a href="{% url 'assign_task' %}" class="btn btn-success btn-sm">
+            <i class="fas fa-plus-circle me-1"></i> Assign Task
+        </a>
     </div>
 </div>
 
-<!-- MOBILE FILTER DROPDOWN -->
-<div class="d-md-none mb-3">
-    <button class="btn btn-primary w-100 d-flex justify-content-between align-items-center"
-            data-bs-toggle="collapse" data-bs-target="#filtersDropdown">
-        <span>Filters</span>
-        <i class="fas fa-filter"></i>
-    </button>
-</div>
+<div class="container-fluid px-0 px-md-2">
 
-<!-- FILTERS CARD -->
-<div id="filtersDropdown" class="collapse d-md-block">
-<div class="card mb-3">
-    <div class="card-body bg-light border-bottom">
-        <div class="row g-3 align-items-center">
-            <form class="col-md-3 d-flex" method="get" action="">
-                <input type="hidden" name="q" id="hiddenStaffRow">
+    <!-- 🔶 MOBILE FILTER BUTTON -->
+    <div class="d-md-none mb-3 px-2">
+        <button class="btn btn-warning w-100 d-flex justify-content-between align-items-center fw-bold"
+                data-bs-toggle="collapse" data-bs-target="#filtersDropdown">
+            <span>Filters</span>
+            <i class="fas fa-filter"></i>
+        </button>
+    </div>
 
-                <select class="form-control" name="staff"
-                    onchange="document.getElementById('hiddenStaffRow').value = 'staff '+this.value;">
-                    <option value="">Select Staff</option>
-                    {% for s in staff %}
-                        <option value="{{ s.name }}">{{ s.name }}</option>
-                    {% endfor %}
-                </select>
+    <!-- 🔷 FILTER BOX -->
+    <div id="filtersDropdown" class="collapse d-md-block px-2 px-md-0">
+        <div class="card shadow-sm mb-3">
+            <div class="card-body">
 
-                <button class="btn btn-primary ms-2"><i class="fas fa-search"></i></button>
-            </form>
-            <!-- Hospital Filter -->
-            <form class="col-md-3 d-flex" method="get" action="">
-                {% csrf_token %}
-                <input type="hidden" name="q" id="hiddenHospitalRow">
-                <select class="form-control" name="hospital"
-                    onchange="document.getElementById('hiddenHospitalRow').value = 'hospital '+this.options[this.selectedIndex].text;">
-                    <option value="">Hospital</option>
-                    {% for hospital in hospitals %}
-                    <option value="{{ hospital.id }}">{{ hospital.id }} - {{ hospital.hospital_name }}</option>
-                    {% endfor %}
-                </select>
-                <button class="btn btn-primary ms-2"><i class="fas fa-search"></i></button>
-            </form>
+                <form method="get" class="row g-3">
 
-            <!-- City Filter -->
-            <form class="col-md-3 d-flex" method="get" action="">
-                <input type="hidden" name="q" id="hiddenCityRow">
-                <select class="form-control" name="city"
-                    onchange="document.getElementById('hiddenCityRow').value = 'city '+this.value;">
-                    <option value="">City</option>
-                    {% for city in cities %}
-                        {% if city %}<option value="{{ city }}">{{ city }}</option>{% endif %}
-                    {% endfor %}
-                </select>
-                <button class="btn btn-primary ms-2"><i class="fas fa-search"></i></button>
-            </form>
+                    <!-- STATE -->
+                    <div class="col-md-3 col-12">
+                        <label class="form-label fw-semibold">State</label>
+                        <select name="state" id="stateSelect" class="form-select">
+                            <option value="">All States</option>
+                            {% for state in states %}
+                                <option value="{{ state }}"
+                                        {% if request.GET.state == state %}selected{% endif %}>
+                                    {{ state }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-            <!-- State Filter -->
-            <form class="col-md-3 d-flex" method="get" action="">
-                <input type="hidden" name="q" id="hiddenStateRow">
-                <select class="form-control" name="state"
-                    onchange="document.getElementById('hiddenStateRow').value = 'state '+this.value;">
-                    <option value="">State</option>
-                    {% for state in states %}
-                        {% if state %}<option value="{{ state }}">{{ state }}</option>{% endif %}
-                    {% endfor %}
-                </select>
-                <button class="btn btn-primary ms-2"><i class="fas fa-search"></i></button>
-            </form>
+                    <!-- CITY (depends on state) -->
+                    <div class="col-md-3 col-12">
+                        <label class="form-label fw-semibold">City</label>
+                        <select name="city" id="citySelect" class="form-select">
+                            <option value="">All Cities</option>
+                            {# Options will be populated by JS based on state #}
+                        </select>
+                    </div>
 
-            <!-- Task Type Filter -->
-            <form class="col-md-3 d-flex" method="get" action="">
-                <input type="hidden" name="q" id="hiddenTaskRow">
-                <select name="task_type" class="form-control" required>
-                      <option value="">Select Task</option>
-                      <option value="quotation_submitted">Quotation Submitted</option>
-                      <option value="payment_follow_up">Payment follow up</option>
-                      <option value="scrap_machine">Scrap Machine</option>
-                      <option value="ncp_solution">NCP_Solution</option>
-                      <option value="ncp_machine">NCP_Machine</option>
-                      <option value="fmc_amc">FMC_AMC</option>
-                      <option value="phone_call">Phone Call</option>
-                      <option value="pts_visit">PTS_Visit</option>
-                      <option value="citro_clear">Citro Clear</option>
-                      <option value="pulmonary">Pulmonary</option>
-                    </select>
-                <button class="btn btn-primary ms-2"><i class="fas fa-search"></i></button>
-            </form>
-                        <!-- Reset Filters Button -->
-            <div class="col-md-3">
-                <a href="{% url 'manage_task' %}" class="btn btn-outline-danger w-100">
-                    <i class="fas fa-times-circle me-1"></i> Reset Filters
-                </a>
+                    <!-- HOSPITAL (depends on state + city) -->
+                    <div class="col-md-3 col-12">
+                        <label class="form-label fw-semibold">Hospital</label>
+                        <select name="hospital" id="hospitalSelect" class="form-select">
+                            <option value="">All Hospitals</option>
+                            {# Options populated via JS #}
+                        </select>
+                    </div>
+
+                    <!-- STAFF -->
+                    <div class="col-md-3 col-12">
+                        <label class="form-label fw-semibold">Staff</label>
+                        <select name="staff" class="form-select">
+                            <option value="">All Staff</option>
+                            {% for s in staff %}
+                                <option value="{{ s.id }}"
+                                    {% if request.GET.staff == s.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ s.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- TASK TYPE -->
+                    <div class="col-md-3 col-12">
+                        <label class="form-label fw-semibold">Task Type</label>
+                        <select name="task_type" class="form-select">
+                            <option value="">All Tasks</option>
+                            <option value="quotation_submitted"
+                                {% if request.GET.task_type == "quotation_submitted" %}selected{% endif %}>
+                                Quotation Submitted
+                            </option>
+                            <option value="payment_follow_up"
+                                {% if request.GET.task_type == "payment_follow_up" %}selected{% endif %}>
+                                Payment Follow Up
+                            </option>
+                            <option value="scrap_machine"
+                                {% if request.GET.task_type == "scrap_machine" %}selected{% endif %}>
+                                Scrap Machine
+                            </option>
+                            <option value="ncp_solution"
+                                {% if request.GET.task_type == "ncp_solution" %}selected{% endif %}>
+                                NCP Solution
+                            </option>
+                            <option value="ncp_machine"
+                                {% if request.GET.task_type == "ncp_machine" %}selected{% endif %}>
+                                NCP Machine
+                            </option>
+                            <option value="fmc_amc"
+                                {% if request.GET.task_type == "fmc_amc" %}selected{% endif %}>
+                                FMC / AMC
+                            </option>
+                            <option value="phone_call"
+                                {% if request.GET.task_type == "phone_call" %}selected{% endif %}>
+                                Phone Call
+                            </option>
+                            <option value="pts_visit"
+                                {% if request.GET.task_type == "pts_visit" %}selected{% endif %}>
+                                PTS Visit
+                            </option>
+                            <option value="citro_clear"
+                                {% if request.GET.task_type == "citro_clear" %}selected{% endif %}>
+                                Citro Clear
+                            </option>
+                            <option value="pulmonary"
+                                {% if request.GET.task_type == "pulmonary" %}selected{% endif %}>
+                                Pulmonary
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- BUTTONS -->
+                    <div class="col-md-3 col-12 d-flex align-items-end">
+                        <button class="btn btn-primary w-100">
+                            <i class="fas fa-search me-1"></i> search
+                        </button>
+                    </div>
+
+                    <div class="col-md-3 col-12 d-flex align-items-end">
+                        <a href="{% url 'manage_task' %}" class="btn btn-secondary w-100">
+                            <i class="fas fa-times-circle me-1"></i> Reset
+                        </a>
+                    </div>
+
+                </form>
+
             </div>
-
         </div>
     </div>
-</div>
-</div>
 
-<!-- VIEW TOGGLE BUTTONS -->
-<div class="container mt-2">
-    <div class="d-flex justify-content-end mb-3">
+    <!-- VIEW TOGGLE BUTTONS -->
+    <div class="d-flex justify-content-end mb-3 px-2 px-md-0">
         <button id="tableViewBtn" class="btn btn-outline-primary view-toggle-btn me-2">
-
             <i class="fas fa-table"></i> Table View
         </button>
         <button id="cardViewBtn" class="btn btn-outline-primary view-toggle-btn active">
-
             <i class="fas fa-list"></i> Card View
         </button>
     </div>
 
-<!-- TABLE VIEW -->
-<div id="tableView">
-    <div class="card">
-        <div class="card-body p-0">
-            {% if tasks %}
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Hospital</th>
-                            <th>Staff</th>
-                            <th>Task</th>
-                            <th>Description</th>
-                            <th>Assign Date</th>
-                            <th>Follow-up</th>
-                            <th class="text-center">Actions</th>
-                        </tr>
-                    </thead>
+    <!-- TABLE VIEW -->
+    <div id="tableView" style="display:none;" class="px-2 px-md-0">
+        <div class="card">
+            <div class="card-body p-0">
+                {% if tasks %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Hospital</th>
+                                <th>Staff</th>
+                                <th>Task</th>
+                                <th>Description</th>
+                                <th>Assign Date</th>
+                                <th>Follow-up</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
 
-                    <tbody>
-                        {% for task in tasks %}
-                        <tr>
-                            <td><strong>{{ task.hospital_id }}</strong><br>
-                                <small class="text-muted">{{ task.hospital_id.city }}</small>
-                            </td>
+                        <tbody>
+                            {% for task in tasks %}
+                            <tr>
+                                <!-- HOSPITAL -->
+                                <td>
+                                    <strong>{{ task.hospital_id.hospital_name }}</strong><br>
+                                    <small class="text-muted">
+                                        {{ task.hospital_id.city }}, {{ task.hospital_id.state }}
+                                    </small>
+                                </td>
 
-                            <td>{{ task.staff_id }}</td>
+                                <!-- STAFF + PHONE + ICONS -->
+                                <td>
+                                    <div>{{ task.staff_id.name }}</div>
+                                    {% if task.staff_id.phone_number %}
+                                        <div class="text-muted small d-flex align-items-center staff-contact-icons mt-1">
+                                            <span class="me-2">
+                                                {{ task.staff_id.phone_number }}
+                                            </span>
+                                            <a href="tel:{{ task.staff_id.phone_number }}"
+                                               title="Call">
+                                                <i class="fas fa-phone-alt text-success"></i>
+                                            </a>
+                                            <a href="https://wa.me/{{ task.staff_id.phone_number }}"
+                                               target="_blank"
+                                               title="WhatsApp">
+                                                <i class="fab fa-whatsapp text-success"></i>
+                                            </a>
+                                        </div>
+                                    {% endif %}
+                                </td>
 
-                            <td>
-                                <span class="badge bg-info text-dark">{{ task.task_type }}</span>
-                            </td>
+                                <!-- TASK TYPE -->
+                                <td>
+                                    <span class="badge bg-info text-dark text-uppercase">
+                                        {{ task.task_type }}
+                                    </span>
+                                </td>
 
-                            <td>{{ task.description }}</td>
+                                <!-- DESCRIPTION -->
+                                <td style="max-width: 260px;">
+                                    <small>{{ task.description }}</small>
+                                </td>
 
-                            <td>{{ task.assign_date }}</td>
-                            <td>{{ task.follow_up_date }}</td>
+                                <!-- DATES -->
+                                <td>{{ task.assign_date }}</td>
+                                <td>{{ task.follow_up_date }}</td>
 
-                            <td class="text-center">
-                                <a href="{% url 'view_task' task.id %}" class="btn btn-sm btn-outline-primary">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                <a href="{% url 'hospital_lead_edit' task.id %}" class="btn btn-sm btn-outline-warning">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
+                                <!-- ACTIONS -->
+                                <td class="text-center">
+                                    <a href="{% url 'view_task' task.id %}" class="btn btn-sm btn-outline-primary me-1">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'edit_task' task.id %}" class="btn btn-sm btn-outline-warning">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                     <!-- DELETE -->
+    <button class="btn btn-sm btn-outline-danger"
+            onclick="confirmDeleteTask('{{ task.id }}','{{ task.hospital_id.hospital_name }}')">
+        <i class="fas fa-trash"></i>
+    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
 
-                </table>
+                    </table>
+                </div>
+
+                {% else %}
+                <div class="p-4 text-center text-muted">No tasks found.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- CARD VIEW -->
+    <div id="cardView" class="px-2 px-md-0">
+        {% if tasks %}
+        {% for task in tasks %}
+        <div class="task-card-box mb-3">
+
+            <!-- TOP: HOSPITAL + TASK TYPE -->
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="avatar-sm bg-primary text-white d-flex align-items-center justify-content-center fw-bold">
+                        {{ task.hospital_id.hospital_name|default:"-"|slice:":1"|upper }}
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold">{{ task.hospital_id.hospital_name }}</h6>
+                        <small class="text-muted">
+                            {{ task.hospital_id.city }}, {{ task.hospital_id.state }}
+                        </small>
+                    </div>
+                </div>
+
+                <span class="badge bg-info text-dark text-uppercase">
+                    {{ task.task_type }}
+                </span>
             </div>
 
-            {% else %}
-            <div class="p-4 text-center text-muted">No tasks found.</div>
+            <hr class="my-2">
+
+            <!-- STAFF + CONTACT -->
+            <p class="mb-1">
+                <i class="fas fa-user text-primary me-1"></i>
+                <strong>{{ task.staff_id.name }}</strong>
+            </p>
+            {% if task.staff_id.phone_number %}
+                <p class="mb-2 text-muted small d-flex align-items-center staff-contact-icons">
+                    <span class="me-2">
+                        <i class="fas fa-phone-alt text-success me-1"></i>
+                        {{ task.staff_id.phone_number }}
+                    </span>
+                    <a href="tel:{{ task.staff_id.phone_number }}" title="Call">
+                        <i class="fas fa-phone-alt text-success"></i>
+                    </a>
+                    <a href="https://wa.me/{{ task.staff_id.phone_number }}"
+                       target="_blank" title="WhatsApp">
+                        <i class="fab fa-whatsapp text-success"></i>
+                    </a>
+                </p>
             {% endif %}
-        </div>
-    </div>
-</div>
 
-<!-- CARD VIEW -->
-<div id="cardView" style="display:none;">
-    {% for task in tasks %}
-    <div class="task-card-box mb-3">
+            <!-- DESCRIPTION -->
+            <p class="mb-1">
+                <i class="fas fa-align-left text-primary me-1"></i>
+                {{ task.description }}
+            </p>
 
-        <div class="d-flex justify-content-between align-items-center mb-2">
-            <div class="d-flex align-items-center gap-3">
-                <div class="avatar-sm bg-primary text-white d-flex align-items-center justify-content-center fw-bold rounded-circle">
-                    {{ task.hospital_id|stringformat:"s"|slice:":1"|upper }}
-                </div>
+            <!-- DATES -->
+            <p class="mb-1">
+                <i class="fas fa-calendar-day text-primary me-1"></i>
+                {{ task.assign_date }} → {{ task.follow_up_date }}
+            </p>
 
-                <div>
-                    <h6 class="mb-0 fw-bold">{{ task.hospital_id }}</h6>
-                    <small class="text-muted">{{ task.hospital_id.city }}</small>
-                </div>
+            <!-- ACTION BUTTONS -->
+            <div class="d-flex justify-content-end gap-2 mt-2">
+                <a href="{% url 'view_task' task.id %}" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-eye"></i> View
+                </a>
+                <a href="{% url 'edit_task' task.id %}" class="btn btn-outline-warning btn-sm">
+                    <i class="fas fa-edit"></i> Edit
+                </a>
+                    <button class="btn btn-sm btn-outline-danger"
+            onclick="confirmDeleteTask('{{ task.id }}','{{ task.hospital_id.hospital_name }}')">
+        <i class="fas fa-trash"></i>
+    </button>
             </div>
 
-            <span class="badge bg-info text-dark">{{ task.task_type }}</span>
         </div>
-
-        <hr class="my-2">
-
-        <p><i class="fas fa-user text-primary"></i> {{ task.staff_id }}</p>
-        <p><i class="fas fa-align-left text-primary"></i> {{ task.description }}</p>
-        <p><i class="fas fa-calendar-day text-primary"></i> {{ task.assign_date }} → {{ task.follow_up_date }}</p>
-
-        <div class="d-flex justify-content-end gap-2 mt-2">
-            <a href="{% url 'view_task' task.id %}" class="btn btn-outline-primary btn-sm">
-                <i class="fas fa-eye"></i> View
-            </a>
-            <a href="{% url 'hospital_lead_edit' task.id %}" class="btn btn-outline-warning btn-sm">
-                <i class="fas fa-edit"></i> Edit
-            </a>
-        </div>
-
+        {% endfor %}
+        {% else %}
+            <div class="p-4 text-center text-muted">No tasks found.</div>
+        {% endif %}
     </div>
-    {% endfor %}
-</div>
 
 </div>
-
 <script>
+function confirmDeleteTask(taskId, hospitalName) {
+    if (confirm(`Delete task for hospital: ${hospitalName}?`)) {
+        window.location.href = "/tasks/delete/" + taskId + "/";
+    }
+}
+</script>
+
+<!-- JS: View Toggle + Cascading Filters -->
+<script>
+    // ===== View Toggle =====
     const tableBtn = document.getElementById("tableViewBtn");
     const cardBtn = document.getElementById("cardViewBtn");
     const tableView = document.getElementById("tableView");
     const cardView = document.getElementById("cardView");
 
-    // Default: show card view first
+    // Default: card view first
     cardView.style.display = "block";
     tableView.style.display = "none";
+    cardBtn.classList.add("active");
 
     tableBtn.onclick = () => {
         tableView.style.display = "block";
@@ -288,6 +440,103 @@
         cardBtn.classList.add("active");
         tableBtn.classList.remove("active");
     };
+
+    // ===== Cascading Filters: State -> City -> Hospital =====
+
+    const stateSelect = document.getElementById("stateSelect");
+    const citySelect = document.getElementById("citySelect");
+    const hospitalSelect = document.getElementById("hospitalSelect");
+
+    // Build data from Django context
+    const hospitalData = [
+        {% for h in hospitals %}
+        {
+            id: "{{ h.id }}",
+            name: "{{ h.hospital_name|escapejs }}",
+            city: "{{ h.city|default_if_none:''|escapejs }}",
+            state: "{{ h.state|default_if_none:''|escapejs }}"
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    function getUniqueCitiesForState(state) {
+        const cities = new Set();
+        hospitalData.forEach(h => {
+            if (!state || h.state === state) {
+                if (h.city) cities.add(h.city);
+            }
+        });
+        return Array.from(cities).sort();
+    }
+
+    function getHospitalsForStateCity(state, city) {
+        return hospitalData.filter(h => {
+            if (state && h.state !== state) return false;
+            if (city && h.city !== city) return false;
+            return true;
+        });
+    }
+
+    function populateCityOptions() {
+        const selectedState = stateSelect.value || "";
+        const selectedCityFromQuery = "{{ request.GET.city|default_if_none:'' }}";
+
+        // Clear city options
+        citySelect.innerHTML = '<option value="">All Cities</option>';
+
+        const cities = getUniqueCitiesForState(selectedState);
+        cities.forEach(c => {
+            const opt = document.createElement("option");
+            opt.value = c;
+            opt.textContent = c;
+            if (selectedCityFromQuery && selectedCityFromQuery === c) {
+                opt.selected = true;
+            }
+            citySelect.appendChild(opt);
+        });
+    }
+
+    function populateHospitalOptions() {
+        const selectedState = stateSelect.value || "";
+        const selectedCity = citySelect.value || "";
+        const selectedHospitalFromQuery = "{{ request.GET.hospital|default_if_none:'' }}";
+
+        // Clear
+        hospitalSelect.innerHTML = '<option value="">All Hospitals</option>';
+
+        const hospitalsFiltered = getHospitalsForStateCity(selectedState, selectedCity);
+        hospitalsFiltered.forEach(h => {
+            const opt = document.createElement("option");
+            opt.value = h.id;
+            opt.textContent = h.id + " - " + h.name;
+            if (selectedHospitalFromQuery && selectedHospitalFromQuery === h.id) {
+                opt.selected = true;
+            }
+            hospitalSelect.appendChild(opt);
+        });
+    }
+
+    // On change of state
+    stateSelect.addEventListener("change", function () {
+        // Reset city & hospital when state changes
+        citySelect.value = "";
+        populateCityOptions();
+        hospitalSelect.value = "";
+        populateHospitalOptions();
+    });
+
+    // On change of city
+    citySelect.addEventListener("change", function () {
+        // Reload hospitals based on state + city
+        hospitalSelect.value = "";
+        populateHospitalOptions();
+    });
+
+    // Initialize on page load
+    document.addEventListener("DOMContentLoaded", function () {
+        populateCityOptions();
+        populateHospitalOptions();
+    });
 </script>
 
 {% endblock %}

@@ -105,7 +105,7 @@ urlpatterns = [
     path("staff/<int:staff_id>/view/", views.view_staff, name="view_staff"),
 
     path('manage-task/', views.manage_task, name='manage_task'),
-    
+    path("edit-task/<int:task_id>/", views.edit_task, name="edit_task"),
     path('view-task/<int:task_id>/', views.view_task, name='view_task'),
     path("staff-expense/add/", views.add_staff_expense, name="add_staff_expense"),
     path("staff-expense/", views.staff_expense_list, name="staff_expense_list"),
@@ -119,6 +119,9 @@ urlpatterns = [
     path('get-hospitals/', views.get_hospitals, name='get_hospitals'),
     path("ajax/vendor-cities/", views.get_vendor_cities, name="get_vendor_cities"),
     path("ajax/vendors-by-city/", views.get_vendors_by_city, name="get_vendors_by_city"),
+    path("ajax/vendor-cities/", views.ajax_vendor_cities, name="ajax_vendor_cities"),
+path("ajax/vendors-by-city/", views.ajax_vendors_by_city, name="ajax_vendors_by_city"),
+    path("tasks/delete/<int:task_id>/", views.delete_task, name="delete_task"),
 
 ]
 

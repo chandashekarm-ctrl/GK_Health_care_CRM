@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}Edit Task{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card {
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .card-header {
+        border-radius: 10px 10px 0 0 !important;
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+    label { font-weight: 600; }
+    textarea { resize: vertical; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <div class="card">
+        <div class="card-header bg-warning text-dark">
+            <i class="fas fa-edit"></i> Edit Task
+        </div>
+
+        <div class="card-body">
+
+            <form method="POST">
+                {% csrf_token %}
+
+                <!-- Dates -->
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label>Assign Date</label>
+                        <input type="date" class="form-control" name="assign_date"
+                               value="{{ task.assign_date|date:'Y-m-d' }}" required>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label>Follow-up Date</label>
+                        <input type="date" class="form-control" name="follow_up_date"
+                               value="{{ task.follow_up_date|date:'Y-m-d' }}" required>
+                    </div>
+                </div>
+
+                <!-- Hospital -->
+                <div class="mb-3">
+                    <label>Hospital</label>
+                    <select name="hospital_id" class="form-select" required>
+                        <option value="">Select Hospital</option>
+                        {% for h in hospitals %}
+                            <option value="{{ h.id }}"
+                                {% if task.hospital_id.id == h.id %}selected{% endif %}>
+                                {{ h.id }} - {{ h.hospital_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Staff -->
+                <div class="mb-3">
+                    <label>Staff</label>
+                    <select name="staff_id" class="form-select" required>
+                        <option value="">Select Staff</option>
+                        {% for s in staff_list %}
+                            <option value="{{ s.id }}"
+                                {% if task.staff_id.id == s.id %}selected{% endif %}>
+                                {{ s.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Task Type -->
+                <div class="mb-3">
+                    <label>Task Type</label>
+                    <select name="task_type" class="form-control" required>
+                      <option value="">Select Task</option>
+                      <option value="quotation_submitted">Quotation Submitted</option>
+                      <option value="payment_follow_up">Payment follow up</option>
+                      <option value="scrap_machine">Scrap Machine</option>
+                      <option value="ncp_solution">NCP_Solution</option>
+                      <option value="ncp_machine">NCP_Machine</option>
+                      <option value="fmc_amc">FMC_AMC</option>
+                      <option value="phone_call">Phone Call</option>
+                      <option value="pts_visit">PTS_Visit</option>
+                      <option value="citro_clear">Citro Clear</option>
+                      <option value="pulmonary">Pulmonary</option>
+                    </select>
+                   
+                </div>
+
+                <!-- Description -->
+                <div class="mb-3">
+                    <label>Description</label>
+                    <textarea class="form-control" name="description" rows="3">{{ task.description }}</textarea>
+                </div>
+
+                <!-- Remarks -->
+                <div class="mb-3">
+                    <label>Remarks</label>
+                    <textarea class="form-control" name="remarks" rows="3">{{ task.remarks }}</textarea>
+                </div>
+
+                <!-- Buttons -->
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'manage_task' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </a>
+
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Update Task
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

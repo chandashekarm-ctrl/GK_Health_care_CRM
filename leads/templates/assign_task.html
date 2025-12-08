@@ -1,51 +1,20 @@
 {% extends "base.html" %}
 
-{% block title %}Hospital/Clinic Lead Form{% endblock %}
+{% block title %}Assign Task{% endblock %}
 
 {% block extra_css %}
-  <style>
+<style>
     .card {
         border-radius: 10px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
-    
     .card-header {
         border-radius: 10px 10px 0 0 !important;
     }
-    
-    h5 {
-        color: #2c3e50;
-        font-weight: 600;
-    }
-    
-    .form-label {
-        font-weight: 500;
-    }
-    
-    .btn-primary {
-        background-color: #3498db;
-        border-color: #3498db;
-    }
-    
-    .btn-primary:hover {
-        background-color: #2980b9;
-        border-color: #2980b9;
-    }
-    
-    .form-check {
-        margin-bottom: 0.5rem;
-    }
-    
-    textarea {
-        resize: vertical;
-    }
-    
-    .remove-product-btn, .remove-parts-btn {
-        transition: opacity 0.3s ease;
-    }
+    .form-label { font-weight: 600; }
+    textarea { resize: vertical; }
 </style>
 {% endblock %}
-
 
 {% block content %}
 <div class="container mt-4">
@@ -53,68 +22,74 @@
         <div class="card-header bg-primary text-white">
             <h3 class="mb-0">Assign Task</h3>
         </div>
+                <div id="thankYouMessage" 
+            class="alert alert-success mt-3 text-center fw-bold" 
+            style="display: none;">
+            ✅ Task Assigned Successfully!
+        </div>
 
-        <div class="card-body"> 
-          <form method="post" action="{% url 'assign_task' %}" enctype="multipart/form-data">  
-            {% csrf_token %}
-            <div class="mb-4">
-                <div class="row mb-2 mt-2">
+        <div class="card-body">
+            <form method="post" action="{% url 'assign_task' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <!-- DATE SECTION -->
+                <div class="row mb-3">
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Assign Date</label>
                         <input type="date" name="assign_date" class="form-control" required>
                     </div>
+
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Follow up Date</label>
+                        <label class="form-label">Follow Up Date</label>
                         <input type="date" name="follow_up_date" class="form-control" required>
                     </div>
-                </div> 
+                </div>
 
-                <div class="row mb-2">
+                <!-- STATE & CITY -->
+                <div class="row mb-3">
                     <div class="col-md-6 mb-3">
-                      <label class="form-label">City (search)</label>
-                        <select name="city" class="form-control">
-                          <option value="">Select City</option>
-                          {% for city in cities %}
-                              <option value="{{ city }}">{{ city }}</option>
-                          {% endfor %}
+                        <label class="form-label">State</label>
+                        <select id="stateSelect" name="state" class="form-select">
+                            <option value="">Select State</option>
+                            {% for state in states %}
+                                <option value="{{ state }}">{{ state }}</option>
+                            {% endfor %}
                         </select>
                     </div>
+
                     <div class="col-md-6 mb-3">
-                      <label class="form-label">State (search)</label>
-                        <select name="state" class="form-control">
-                          <option value="">Select State</option>
-                          {% for state in states %}
-                              <option value="{{ state }}">{{ state }}</option>
-                          {% endfor %}
+                        <label class="form-label">City</label>
+                        <select id="citySelect" name="city" class="form-select">
+                            <option value="">Select City</option>
                         </select>
                     </div>
                 </div>
 
-                <div class="row mb-2">
-                  <div class="col-md-9 mb-3">
-                    <label class="form-label">Hospital ID/Name</label>
-                    <select type="text" name="hospital_id" class="form-control" placeholder="Enter Hospital ID" required >
-                      <option value="">Select Hospital ID</option>
-                        {% for hospital in hospitals %}
-                            <option value="{{ hospital.id }}">{{ hospital.id }} - {{hospital.hospital_name}}</option>
-                        {% endfor %}
-                    </select>
-                  </div>
+                <!-- HOSPITAL -->
+                <div class="row mb-3">
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label">Hospital</label>
+                        <select name="hospital_id" id="hospitalSelect" class="form-select" required>
+                            <option value="">Select Hospital</option>
+                        </select>
+                    </div>
                 </div>
 
-                <div class="row mb-2">
-                  <div class="col-md-6 mb-3">
-                    <label class="form-label">Staff Member </label>
-                    <select name="staff_id" class="form-control" required>
-                      <option value="">Select Staff ID</option>
-                        {% for person in staff %}
-                            <option value="{{ person.id }}">{{ person.id }} - {{person.name}}</option>
-                        {% endfor %}
-                    </select>
-                  </div>
-                  <div class="col-md-6 mb-3">
-                    <label class="form-label">Task Type</label>
-                    <select name="task_type" class="form-control" required>
+                <!-- STAFF & TASK TYPE -->
+                <div class="row mb-3">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Staff Member</label>
+                        <select name="staff_id" class="form-select" required>
+                            <option value="">Select Staff</option>
+                            {% for person in staff %}
+                                <option value="{{ person.id }}">{{ person.id }} - {{ person.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Task Type</label>
+                       <select name="task_type" class="form-control" required>
                       <option value="">Select Task</option>
                       <option value="quotation_submitted">Quotation Submitted</option>
                       <option value="payment_follow_up">Payment follow up</option>
@@ -127,57 +102,116 @@
                       <option value="citro_clear">Citro Clear</option>
                       <option value="pulmonary">Pulmonary</option>
                     </select>
-                  </div>
+                   
+                    </div>
                 </div>
 
-                <div class="mb-4">
+                <!-- DESCRIPTION -->
+                <div class="mb-3">
                     <label class="form-label">Description</label>
-                    <textarea class="form-control" name="description" rows="3" placeholder="Task Description" required></textarea>
-                </div>
-                
-                <div class="mb-4">
-                    <label class="form-label">Remarks</label>
-                    <textarea class="form-control" name="remarks" rows="3" placeholder="Task Remarks" required></textarea>
+                    <textarea name="description" class="form-control" rows="3" required></textarea>
                 </div>
 
-                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-                    <button class="btn btn-primary" type="submit">Submit</button>
+                <!-- REMARKS -->
+                <div class="mb-3">
+                    <label class="form-label">Remarks</label>
+                    <textarea name="remarks" class="form-control" rows="3" required></textarea>
                 </div>
-            </div>
-          </form> 
+
+                <!-- SUBMIT -->
+                <div class="text-end">
+                    <button class="btn btn-primary px-4" type="submit">Submit</button>
+                </div>
+
+            </form>
         </div>
     </div>
 </div>
 
 <script>
-  // JavaScript to dynamically filter hospital names based on selected city and state
-    document.addEventListener('DOMContentLoaded', function() {
-        const citySelect = document.querySelector('select[name="city"]');
-        const stateSelect = document.querySelector('select[name="state"]');
-        const hospitalSelect = document.querySelector('select[name="hospital_id"]');
+document.addEventListener("DOMContentLoaded", function () {
 
-        function filterHospitals() {
-            const selectedCity = citySelect.value;
-            const selectedState = stateSelect.value;
+    const form = document.querySelector("form");
+    const thankYou = document.getElementById("thankYouMessage");
 
-            // Clear existing options
-            hospitalSelect.innerHTML = '<option value="">Select Hospital ID</option>';
+    form.addEventListener("submit", function(e) {
+        e.preventDefault();  // stop default reload
 
-            {% for hospital in hospitals %}
-                if ("{{ hospital.city|title }}" === selectedCity || "{{ hospital.state|title }}" === selectedState) {
-                    const option = document.createElement('option');
-                    option.value = "{{ hospital.id }}";
-                    option.textContent = "{{ hospital.id }} - {{ hospital.hospital_name }}";
-                    hospitalSelect.appendChild(option);
-                }
-            {% endfor %}
-        }
+        let formData = new FormData(form);
 
-        citySelect.addEventListener('change', filterHospitals);
-        stateSelect.addEventListener('change', filterHospitals);
+        fetch("{% url 'assign_task' %}", {
+            method: "POST",
+            body: formData,
+            headers: { "X-Requested-With": "XMLHttpRequest" }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                form.style.display = "none";
+                thankYou.style.display = "block";
+
+                setTimeout(() => {
+                    window.location.href = "{% url 'manage_task' %}";
+                }, 2000);
+            }
+        });
     });
+
+});
+</script>
+
+<!-- DEPENDENT FILTERS: State → City → Hospital -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const stateSelect = document.getElementById("stateSelect");
+    const citySelect = document.getElementById("citySelect");
+    const hospitalSelect = document.getElementById("hospitalSelect");
+
+    const hospitalData = [
+        {% for h in hospitals %}
+            {
+                id: "{{ h.id }}",
+                name: "{{ h.hospital_name }}",
+                city: "{{ h.city|title }}",
+                state: "{{ h.state|title }}"
+            },
+        {% endfor %}
+    ];
+
+    // STATE → CITY
+    stateSelect.addEventListener("change", function () {
+        const selectedState = this.value;
+
+        citySelect.innerHTML = `<option value="">Select City</option>`;
+        hospitalSelect.innerHTML = `<option value="">Select Hospital</option>`;
+
+        if (!selectedState) return;
+
+        const filteredCities = [...new Set(
+            hospitalData.filter(h => h.state === selectedState)
+                        .map(h => h.city)
+        )];
+
+        filteredCities.forEach(city => {
+            citySelect.innerHTML += `<option value="${city}">${city}</option>`;
+        });
+    });
+
+    // CITY → HOSPITAL
+    citySelect.addEventListener("change", function () {
+        const selectedCity = this.value;
+
+        hospitalSelect.innerHTML = `<option value="">Select Hospital</option>`;
+
+        hospitalData.filter(h => h.city === selectedCity)
+            .forEach(h => {
+                hospitalSelect.innerHTML +=
+                    `<option value="${h.id}">${h.id} - ${h.name}</option>`;
+            });
+    });
+
+});
 </script>
 
 {% endblock %}
-
-

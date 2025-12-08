@@ -44,6 +44,22 @@
                         </div>
                     </div>
                 </div>
+                  <div class="mb-4">
+                    <h5 class="border-bottom pb-2">Lead Source</h5>
+
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="lead_source" id="lead_src"
+                            value="Lead" {% if lead.lead_source == 'Lead' %}checked{% endif %}>
+                        <label class="form-check-label" for="lead_src">Lead</label>
+                    </div>
+
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="lead_source" id="customer_src"
+                            value="Customer" {% if lead.lead_source == 'Customer' %}checked{% endif %}>
+                        <label class="form-check-label" for="customer_src">Customer</label>
+                    </div>
+                </div>
+
 
                 <!-- 2. Contact Information -->
                 <div class="mb-4">

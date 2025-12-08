@@ -538,7 +538,7 @@ def hospital_lead_edit(request, pk):
             lead.city = request.POST.get('city')
             lead.state = request.POST.get('state')
             lead.country = request.POST.get('country', 'India')
-            
+            lead.lead_source = request.POST.get('lead_source')
             # Decision maker information (handle multiple selections)
             decision_makers = request.POST.getlist('decision_maker')
             if 'Other' in decision_makers:
@@ -1394,27 +1394,47 @@ from django.core.paginator import Paginator
 
 def vendor_list(request):
 
-    vendors = Vendor.objects.all().order_by('-created_at')
+    # Get selected values
+    selected_state = request.GET.get("state", "").strip()
+    selected_city = request.GET.get("city", "").strip()
+    selected_vendor = request.GET.get("vendor", "").strip()
+    search = request.GET.get("search", "").strip()
 
-    # Filters
-    state = request.GET.get('state', '').strip()
-    city = request.GET.get('city', '').strip()
-    vendor_id = request.GET.get('vendor', '').strip()
-    search = request.GET.get('search', '').strip()
+    # Base Query
+    vendors = Vendor.objects.all().order_by("-created_at")
 
-    # Apply state filter
-    if state:
-        vendors = vendors.filter(state__iexact=state)
+    # ---------------------------
+    # 1️⃣ STATE LIST
+    # ---------------------------
+    raw_states = Vendor.objects.exclude(state__isnull=True).exclude(state="") \
+                    .values_list("state", flat=True).distinct()
+    states = sorted({ s.strip().title() for s in raw_states })
 
-    # Apply city filter
-    if city:
-        vendors = vendors.filter(city__iexact=city)
+    # ---------------------------
+    # 2️⃣ CITY LIST (Depends on State)
+    # ---------------------------
+    if selected_state:
+        raw_cities = Vendor.objects.filter(state__iexact=selected_state) \
+                        .exclude(city__isnull=True).exclude(city="") \
+                        .values_list("city", flat=True).distinct()
+    else:
+        raw_cities = Vendor.objects.exclude(city__isnull=True).exclude(city="") \
+                        .values_list("city", flat=True).distinct()
 
-    # Apply vendor exact filter
-    if vendor_id:
-        vendors = vendors.filter(id=vendor_id)
+    cities = sorted({ c.strip().title() for c in raw_cities })
 
-    # Apply search box
+    # ---------------------------
+    # 3️⃣ Apply Filters
+    # ---------------------------
+    if selected_state:
+        vendors = vendors.filter(state__iexact=selected_state)
+
+    if selected_city:
+        vendors = vendors.filter(city__iexact=selected_city)
+
+    if selected_vendor:
+        vendors = vendors.filter(id=selected_vendor)
+
     if search:
         vendors = vendors.filter(
             Q(vendor_id__icontains=search) |
@@ -1424,24 +1444,31 @@ def vendor_list(request):
             Q(email__icontains=search)
         )
 
-    # Dropdown sources
-    all_states = Vendor.objects.exclude(state="").values_list("state", flat=True).distinct()
-    all_cities = Vendor.objects.exclude(city="").values_list("city", flat=True).distinct()
-    all_vendors = Vendor.objects.all().order_by("vendor_name")
+    # ---------------------------
+    # 4️⃣ Vendor list (depends on State+City)
+    # ---------------------------
+    if selected_city:
+        vendors_all = Vendor.objects.filter(city__iexact=selected_city).order_by("vendor_name")
+    elif selected_state:
+        vendors_all = Vendor.objects.filter(state__iexact=selected_state).order_by("vendor_name")
+    else:
+        vendors_all = Vendor.objects.all().order_by("vendor_name")
 
+    # ---------------------------
     # Pagination
+    # ---------------------------
     paginator = Paginator(vendors, 10)
-    page_obj = paginator.get_page(request.GET.get('page'))
+    page_obj = paginator.get_page(request.GET.get("page"))
 
     return render(request, "vendor_list.html", {
         "vendors": page_obj,
-        "states": sorted(all_states),
-        "cities": sorted(all_cities),
-        "vendors_all": all_vendors,
+        "states": states,
+        "cities": cities,
+        "vendors_all": vendors_all,
 
-        "selected_state": state,
-        "selected_city": city,
-        "selected_vendor": vendor_id,
+        "selected_state": selected_state,
+        "selected_city": selected_city,
+        "selected_vendor": selected_vendor,
         "search_query": search,
 
         "total_vendors": Vendor.objects.count(),
@@ -1971,15 +1998,11 @@ def delivery_challan_report(request):
     }
     return render(request, 'delivery_challan_report.html', context)
 
-#view_report
-
 def view_report(request):
     """Main reports dashboard view"""
     return render(request, 'view_reports.html')
 
-
 from .models import *
-
 from django.shortcuts import render, redirect
 from .models import Staff
 
@@ -2106,8 +2129,7 @@ def delete_staff(request, staff_id):
     messages.success(request, f'Staff "{name}" deleted successfully.')
     return redirect("manage_staff")
 
-
-def assign_task(request):
+def assign_task1(request):
     """Assign task to employee"""
 
     if request.method == 'POST':
@@ -2159,6 +2181,59 @@ def assign_task(request):
     return render(request, 'assign_task.html', {'staff': staff, 'hospitals': hospitals,
                                                 'cities': cities, 'states': states})
 
+def delete_task(request, task_id):
+    task = get_object_or_404(TaskAssign, id=task_id)
+    task.delete()
+    messages.success(request, "Task deleted successfully!")
+    return redirect("manage_task")
+
+
+from django.contrib import messages
+from django.shortcuts import redirect
+
+def assign_task(request):
+    if request.method == 'POST':
+
+        assign_date = request.POST.get('assign_date')
+        hospital_id = request.POST.get('hospital_id')
+        staff_id = request.POST.get('staff_id')
+        task_type = request.POST.get('task_type')
+        description = request.POST.get('description')
+        remarks = request.POST.get('remarks')
+        follow_up_date = request.POST.get('follow_up_date')
+
+        TaskAssign.objects.create(
+            assign_date=assign_date,
+            hospital_id=HospitalLead.objects.get(id=hospital_id),
+            staff_id=Staff.objects.get(id=staff_id),
+            task_type=task_type,
+            description=description,
+            remarks=remarks,
+            follow_up_date=follow_up_date
+        )
+
+        # success message (NOT shown on same page)
+        messages.success(request, "Task assigned successfully!")
+
+        # Return empty response for frontend JS
+        return JsonResponse({"success": True})
+
+    # Page load
+    cities_list = HospitalLead.objects.values_list('city', flat=True)
+    cities = sorted({c.strip().title() for c in cities_list if c})
+
+    states_list = HospitalLead.objects.values_list('state', flat=True)
+    states = sorted({s.strip().title() for s in states_list if s})
+
+    return render(request, 'assign_task.html', {
+        "staff": Staff.objects.all(),
+        "hospitals": HospitalLead.objects.all(),
+        "cities": cities,
+        "states": states
+    })
+
+
+
 def manage_staff(request):
     selected_staff = request.GET.get("staff", "")
 
@@ -2173,66 +2248,122 @@ def manage_staff(request):
         "staff_list": Staff.objects.all(),  # 🔥 for dropdown
     })
 
-
+from django.shortcuts import render
+from .models import TaskAssign, Staff, HospitalLead
 import urllib.parse
 
- 
 def manage_task(request):
 
-    query = request.GET.get('q', '')            # query = hospital_name 1 - srm - chennai
-    query_url =  urllib.parse.quote(query)      # query_url = 'hospital_name%201%20-%20srm%20-%20chennai'
-    filter_type = query_url.split('%20')[0]     # filter_type = [hospital_name, 1, -, srm, -, chennai]
-    
-    if filter_type == 'hospital_name':
-        tasks = TaskAssign.objects.filter(hospital_id=query_url.split('%20')[1])
-        staff = Staff.objects.all()
-        hospitals = HospitalLead.objects.all()
-    elif filter_type == 'task_type':
-        tasks = TaskAssign.objects.filter(task_type = query_url.split('%20',1)[1])
-        staff = Staff.objects.all()
-        hospitals = HospitalLead.objects.all()
-    elif filter_type == 'city':
-        tasks = TaskAssign.objects.filter(hospital_id__city=query_url.split('%20')[1])  # foreignkeyfield__fieldname
-        staff = Staff.objects.all()
-        hospitals = HospitalLead.objects.all()
-    elif filter_type == 'state':
-        tasks = TaskAssign.objects.filter(hospital_id__state=query_url.split('%20')[1]) 
-        staff = Staff.objects.all()
-        hospitals = HospitalLead.objects.all()
-    elif filter_type == 'staff':
-        staff_name = query_url.split('%20', 1)[1]
-        tasks = TaskAssign.objects.filter(staff__name__iexact=staff_name)
+    # Base queryset
+    tasks = TaskAssign.objects.all()
+
+    # -------------------------------
+    # FILTER PARAMETERS
+    # -------------------------------
+    selected_state = request.GET.get("state", "")
+    selected_city = request.GET.get("city", "")
+    selected_hospital = request.GET.get("hospital", "")
+    selected_staff = request.GET.get("staff", "")
+    selected_task_type = request.GET.get("task_type", "")
+
+    # -------------------------------
+    # FILTER BY STATE
+    # -------------------------------
+    if selected_state:
+        tasks = tasks.filter(hospital_id__state__iexact=selected_state)
+
+    # CITY LIST inside selected state
+    if selected_state:
+        cities = HospitalLead.objects.filter(state__iexact=selected_state)\
+                .values_list("city", flat=True).distinct()
+    else:
+        cities = HospitalLead.objects.values_list("city", flat=True).distinct()
+
+    # -------------------------------
+    # FILTER BY CITY
+    # -------------------------------
+    if selected_city:
+        tasks = tasks.filter(hospital_id__city__iexact=selected_city)
+
+    # HOSPITAL LIST inside selected city
+    if selected_city:
+        hospitals = HospitalLead.objects.filter(city__iexact=selected_city)
+    elif selected_state:
+        hospitals = HospitalLead.objects.filter(state__iexact=selected_state)
     else:
         hospitals = HospitalLead.objects.all()
+
+    # -------------------------------
+    # FILTER BY HOSPITAL
+    # -------------------------------
+    if selected_hospital:
+        tasks = tasks.filter(hospital_id=selected_hospital)
+
+    # STAFF LIST inside selected hospital
+    if selected_hospital:
+        staff = Staff.objects.filter(task_assign__hospital_id=selected_hospital).distinct()
+    else:
         staff = Staff.objects.all()
-        tasks = TaskAssign.objects.all()
-    cities = sorted(set([
-        city.strip().title() for city in HospitalLead.objects.values_list('city', flat=True) if city
-    ]))
 
-    states = sorted(set([
-        state.strip().title() for state in HospitalLead.objects.values_list('state', flat=True) if state
-    ]))
+    # -------------------------------
+    # FILTER BY STAFF
+    # -------------------------------
+    if selected_staff:
+        tasks = tasks.filter(staff_id=selected_staff)
 
-    cities = set(HospitalLead.objects.values_list('city', flat=True))
-    # This returns all unique cities as a set (the cities will not be repeated more than once)
-    cities = [city.strip().title() for city in cities if city != '']
-    '''Return a list of non-empty cities (if city != '') with surrounding whitespace removed (.strip()).
-    title() - Capitalizes the first letter of every word.'''
-    cities = sorted(set(cities))   # Sort the cities in ascending order
-    
-    states_list = HospitalLead.objects.values_list('state', flat=True) 
-    states = sorted(set([state.strip().title() for state in states_list if state != '']))
+    # -------------------------------
+    # FILTER BY TASK TYPE
+    # -------------------------------
+    if selected_task_type:
+        tasks = tasks.filter(task_type=selected_task_type)
 
-    return render(request, 'manage-task.html', {'staff': staff, 'hospitals': hospitals, 'tasks' : tasks, 
-                                                'cities' : cities, 'states' :states})
+    # -------------------------------
+    # STATE LIST
+    # -------------------------------
+    states = HospitalLead.objects.values_list("state", flat=True).distinct()
 
+    return render(request, "manage-task.html", {
+        "tasks": tasks,
+        "states": states,
+        "cities": cities,
+        "hospitals": hospitals,
+        "staff": staff,
+
+        "selected_state": selected_state,
+        "selected_city": selected_city,
+        "selected_hospital": selected_hospital,
+        "selected_staff": selected_staff,
+        "selected_task_type": selected_task_type,
+    })
 
 def view_task(request, task_id):
     
     task = TaskAssign.objects.get(id = task_id)
     print(task.assign_date)
     return render(request, 'view-task.html', {'task' : task})
+
+def edit_task(request, task_id):
+    task = TaskAssign.objects.get(id=task_id)
+    staff_list = Staff.objects.all()
+    hospitals = HospitalLead.objects.all()
+
+    if request.method == "POST":
+        task.assign_date = request.POST.get("assign_date")
+        task.follow_up_date = request.POST.get("follow_up_date")
+        task.task_type = request.POST.get("task_type")
+        task.description = request.POST.get("description")
+        task.remarks = request.POST.get("remarks")
+        task.staff_id_id = request.POST.get("staff_id")
+        task.hospital_id_id = request.POST.get("hospital_id")
+
+        task.save()
+        return redirect("manage_task")
+
+    return render(request, "edit-task.html", {
+        "task": task,
+        "staff_list": staff_list,
+        "hospitals": hospitals,
+    })
 
 def Expenses(request):
     expenses = Expense.objects.all().order_by('-created_at')
@@ -2285,3 +2416,21 @@ def get_hospitals(request):
         lead_source="Customer"
     ).values("id", "hospital_name")
     return JsonResponse({"hospitals": list(hospitals)})
+
+from django.http import JsonResponse
+from .models import Vendor
+
+def ajax_vendor_cities(request):
+    state = request.GET.get("state", "")
+    cities = list(Vendor.objects.filter(state__iexact=state)
+                  .values_list("city", flat=True).distinct())
+    return JsonResponse({"cities": cities})
+
+def ajax_vendors_by_city(request):
+    city = request.GET.get("city", "")
+    vendors = Vendor.objects.filter(city__iexact=city).values(
+        "id", "vendor_id", "vendor_name", "company_name"
+    )
+    return JsonResponse({"vendors": list(vendors)})
+
+
