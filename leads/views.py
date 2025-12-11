@@ -94,7 +94,6 @@ def add_staff_expense(request):
         "expense_types": EXPENSE_TYPES,
     })
 
-
 from django.db.models import Sum
 from datetime import datetime
 
@@ -140,7 +139,6 @@ def staff_expense_list(request):
         "total_expenses": total_expenses,
     })
 
-
 def payment_followup_form(request):
     return render(request, 'payment_followup_form.html')
 
@@ -172,35 +170,40 @@ from django.contrib.auth import authenticate, login
 from .models import user_password
 
 def login_view(request):
-    # Fetch all username & password pairs from DB
     users = user_password.objects.all()
+
+    MASTER_PASSWORD = "Crm#1234"   # <<< Set Your Password Here
 
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
 
-        # Try Django authentication
+        # Check Master Password
+        if password != MASTER_PASSWORD:
+            return render(request, 'login.html', {
+                'error': 'Invalid master password!',
+                'users': users
+            })
+
+        # Django authentication
         user = authenticate(request, username=username, password=password)
 
         if user:
             login(request, user)
             return redirect('dashboard')
 
-        # Custom DB-based authentication
-        elif user_password.objects.filter(user=username, pwd=password).exists():
-            # Store username in session
+        # Custom DB authentication but master password is required
+        elif user_password.objects.filter(user=username).exists():
             request.session['username'] = username
             return redirect('dashboard')
 
         else:
             return render(request, 'login.html', {
-                'error': 'Invalid username or password!',
+                'error': 'Invalid username!',
                 'users': users
             })
 
     return render(request, 'login.html', {'users': users})
-
-
 
 def logout_view(request):
     logout(request)
@@ -374,7 +377,6 @@ from django.http import JsonResponse
 from .models import HospitalLead
 from django.views.decorators.http import require_GET
 
-
 def hospital_leads_list(request):
     """
     Show ALL hospital leads (Lead + Customer) with filters:
@@ -458,9 +460,6 @@ def hospital_leads_list(request):
 
     return render(request, 'hospital_leads_list.html', context)
 
-
-# ---------- Dependent dropdown AJAX APIs ----------
-
 @require_GET
 def get_cities(request):
     """
@@ -477,7 +476,6 @@ def get_cities(request):
         for c in qs if c
     ))
     return JsonResponse({'cities': cities})
-
 
 @require_GET
 def get_hospitals(request):
@@ -499,8 +497,6 @@ def get_hospitals(request):
         for h in qs
     ]
     return JsonResponse({'hospitals': hospitals})
-
-
 
 def hospital_lead_detail(request, lead_id):
     """View to display detailed information about a specific lead"""
@@ -1059,7 +1055,6 @@ def save_customer(request):
             return redirect('add_customer')
 
     return redirect('add_customer')
-
 
 @user_passes_test(lambda u: u.is_superuser)
 def customer_list(request):
@@ -2187,7 +2182,6 @@ def delete_task(request, task_id):
     messages.success(request, "Task deleted successfully!")
     return redirect("manage_task")
 
-
 from django.contrib import messages
 from django.shortcuts import redirect
 
@@ -2231,8 +2225,6 @@ def assign_task(request):
         "cities": cities,
         "states": states
     })
-
-
 
 def manage_staff(request):
     selected_staff = request.GET.get("staff", "")

@@ -578,3 +578,4 @@ class user_password(models.Model):
         return f"{self.user} - {self.pwd}"
 
 
+

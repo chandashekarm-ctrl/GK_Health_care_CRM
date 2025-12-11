@@ -81,15 +81,12 @@
       background-color: transparent;
       border-right: none;
     }
-
     .input-group .form-control {
       border-left: none;
     }
-
     .alert {
       font-size: 14px;
     }
-
     @keyframes fadeInUp {
       from {
         opacity: 0;
@@ -100,7 +97,6 @@
         transform: translateY(0);
       }
     }
-
     @media (max-width: 576px) {
       .login-card {
         margin: 0 10px;
@@ -114,18 +110,14 @@
       <h2><i class="fas fa-user-shield me-2"></i>Lead Manager</h2>
       <p class="mb-0">Access your dashboard</p>
     </div>
-
     <div class="login-body">
       {% if error %}
       <div class="alert alert-danger animate__animated animate__shakeX">
         <i class="fas fa-exclamation-circle me-2"></i> {{ error }}
       </div>
       {% endif %}
-
       <form method="post">
         {% csrf_token %}
-
-        <!-- Username Dropdown -->
         <div class="mb-4">
             <label class="form-label">Username</label>
             <div class="input-group">
@@ -138,32 +130,25 @@
                 </select>
             </div>
         </div>
-
-        <!-- Password Dropdown -->
         <div class="mb-4">
-            <label class="form-label">Password</label>
-            <div class="input-group">
-                <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                <select name="password" class="form-control" required>
-                    <option value="">Select Password</option>
-                    {% for u in users %}
-                        <option value="{{ u.pwd }}">{{ u.pwd }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        </div>
+    <label class="form-label">Password</label>
+    <div class="input-group">
+        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+        <input type="password" name="password" class="form-control" placeholder="Enter Password" required />
+    </div>
+</div>
 
-        <!-- Login Button -->
+
         <div class="d-grid mb-3">
             <button type="submit" class="btn btn-login">
                 <i class="fas fa-sign-in-alt me-2"></i>Login
             </button>
         </div>
+
     </form>
     </div>
   </div>
 
-  <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

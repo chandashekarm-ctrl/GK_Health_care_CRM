@@ -216,7 +216,20 @@
                 <div class="p-3 pt-0">
                     <div><strong>ID:</strong> {{ v.vendor_id }}</div>
                     <div><strong>Email:</strong> {{ v.email|default:"N/A" }}</div>
-                    <div class="mt-1"><strong>Phone:</strong> {{ v.phone_number }}</div>
+                    <div class="mt-1">
+                        <strong>Phone:</strong> {{ v.phone_number }}
+
+                        <!-- Icons -->
+                        <a href="tel:{{ v.phone_number }}" class="text-primary ms-2" style="font-size:24px;">
+                            <i class="fas fa-phone"></i>
+                        </a>
+
+                        <a href="https://wa.me/{{ v.phone_number }}" target="_blank" class="text-success ms-2" style="font-size:24px;">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                    </div>
+
+                    
                     <div><strong>Location:</strong> {{ v.city }}, {{ v.state }}</div>
 
                     <div class="d-flex gap-2 mt-3">
@@ -232,7 +245,7 @@
                         </button>
                     </div>
                 </div>
-
+                
             </div>
             {% endfor %}
         </div>
